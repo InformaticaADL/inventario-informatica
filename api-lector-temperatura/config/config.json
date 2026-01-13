@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "sa",
+    "password": "MGmerlin.10",
+    "database": "PruebasInformatica",
+    "host": "192.168.10.5",
+    "dialect": "mssql"
+  },
+  "test": {
+    "username": "sa",
+    "password": "MGmerlin.10",
+    "database": "PruebasInformatica",
+    "host": "192.168.10.5",
+    "dialect": "mssql"
+  },
+  "production": {
+    "username": "sa",
+    "password": "MGmerlin.10",
+    "database": "PruebasInformatica",
+    "host": "192.168.10.5",
+    "dialect": "mssql"
+  }
+}
