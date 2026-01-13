@@ -198,8 +198,58 @@ const getIncubadoraHistory = async (req, res) => {
   }
 };
 
+const getAvailableYears = async (req, res) => {
+  try {
+    const { incubadora_id } = req.params;
+
+    // Sequelize query for distinct years
+    // SQL Server syntax: DATEPART(year, fecha)
+    const years = await IncubadoraData.findAll({
+      where: { incubadora_id },
+      attributes: [
+        [sequelize.literal('DATEPART(year, fecha)'), 'year']
+      ],
+      group: [sequelize.literal('DATEPART(year, fecha)')],
+      order: [[sequelize.literal('year'), 'DESC']],
+      raw: true
+    });
+
+    // years will be like [{ year: 2025 }, { year: 2024 }]
+    const result = years.map(y => y.year);
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Error al obtener años disponibles:", error);
+    return res.status(500).json({ message: "Error al obtener años" });
+  }
+};
+
+const getIncubadoraDateRange = async (req, res) => {
+  try {
+    const { incubadora_id } = req.params;
+
+    const range = await IncubadoraData.findOne({
+      where: { incubadora_id },
+      attributes: [
+        [sequelize.fn('MIN', sequelize.col('fecha')), 'minDate'],
+        [sequelize.fn('MAX', sequelize.col('fecha')), 'maxDate']
+      ],
+      raw: true
+    });
+
+    // range será algo como { minDate: "2024-01-01", maxDate: "2026-12-31" }
+    return res.status(200).json(range);
+
+  } catch (error) {
+    console.error("Error al obtener rango de fechas:", error);
+    return res.status(500).json({ message: "Error al obtener rango de fechas" });
+  }
+};
+
 module.exports = {
   consolidar,
   getIncubadoras,
-  getIncubadoraHistory
+  getIncubadoraHistory,
+  getAvailableYears,
+  getIncubadoraDateRange
 };

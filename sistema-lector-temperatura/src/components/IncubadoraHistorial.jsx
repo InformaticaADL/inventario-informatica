@@ -6,11 +6,46 @@ import IncubadoraChart from "./IncubadoraChart";
 const IncubadoraHistorial = () => {
     const [incubadoras, setIncubadoras] = useState([]);
     const [selectedIncubadora, setSelectedIncubadora] = useState("");
+    const [selectedYear, setSelectedYear] = useState("");
+    const [availableYears, setAvailableYears] = useState([]);
     const [history, setHistory] = useState([]);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [globalRange, setGlobalRange] = useState({ min: null, max: null }); // Rango absoluto de datos
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    const handleYearChange = (year) => {
+        setSelectedYear(year);
+        if (year) {
+            let start = `${year}-01-01`;
+            let end = `${year}-12-31`;
+
+            console.log("DEBUG Year Change:", { year, start, end, globalRange });
+
+            // CLAMP: Ajustar al rango real de datos si existe
+            if (globalRange.min && start < globalRange.min) {
+                console.log(`Clamping Start: ${start} -> ${globalRange.min}`);
+                start = globalRange.min;
+            }
+            if (globalRange.max && end > globalRange.max) {
+                console.log(`Clamping End: ${end} -> ${globalRange.max}`);
+                // Si el año seleccionado es el mismo que el año del ultimo dato, cortamos.
+                // O simplemente: tomar el menor entre (fin de año) y (ultimo dato)
+                if (end > globalRange.max) {
+                    end = globalRange.max;
+                }
+            }
+
+            // Caso borde: Si por alguna razón el año seleccionado está fuera del rango global (aunque el filtro availableYears lo previene),
+            // asegurar que start <= end
+            setStartDate(start);
+            setEndDate(end);
+        } else {
+            setStartDate("");
+            setEndDate("");
+        }
+    };
 
     // Cargar lista de incubadoras al montar
     useEffect(() => {
@@ -29,13 +64,61 @@ const IncubadoraHistorial = () => {
         fetchIncubadoras();
     }, []);
 
+    // Cargar AÑOS disponibles y RANGO DE FECHAS cuando cambia la incubadora
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            if (!selectedIncubadora) return;
+            try {
+                const encodedId = encodeURIComponent(selectedIncubadora);
+
+                // 1. Cargar Años Disponibles
+                const resYears = await api.get(`/incubadora/years/${encodedId}`);
+                setAvailableYears(resYears.data);
+
+                // 2. Cargar Rango de Fechas (Min/Max)
+                const resRange = await api.get(`/incubadora/range/${encodedId}`);
+                console.log("DEBUG Metadata Range:", resRange.data);
+                if (resRange.data && resRange.data.minDate && resRange.data.maxDate) {
+                    // Asegurar formato YYYY-MM-DD (primeros 10 chars)
+                    const minStr = String(resRange.data.minDate).substring(0, 10);
+                    const maxStr = String(resRange.data.maxDate).substring(0, 10);
+
+                    // Guardamos el rango global para usarlo en el filtro
+                    setGlobalRange({ min: minStr, max: maxStr });
+
+                    // Opcional: Si queremos setear el rango inicial COMPLETO al cargar:
+                    // setStartDate(minStr);
+                    // setEndDate(maxStr);
+                    // setSelectedYear(""); 
+
+                    // NOTA: El usuario pidió que al cargar se seteen las fechas,
+                    // pero si luego elije año, se usa handleYearChange.
+                    // Mantengamos el comportamiento de setear fecha inicial.
+
+                    // Solo si no hay fechas ya seleccionadas (o si queremos forzar reset al cambiar incubadora)
+                    setStartDate(minStr);
+                    setEndDate(maxStr);
+                    setSelectedYear("");
+
+                } else {
+                    setGlobalRange({ min: null, max: null });
+                    setStartDate("");
+                    setEndDate("");
+                }
+
+            } catch (err) {
+                console.error("Error cargando metadatos (años/rango)", err);
+            }
+        };
+        fetchMetadata();
+    }, [selectedIncubadora]);
+
+    // Format helpers...
     const formatTime = (timeStr) => {
         if (!timeStr) return "-";
-        // Si viene con formato completo ISO (1970-01-01T10:00:00.000Z)
         if (timeStr.includes("T")) {
             return timeStr.split("T")[1].substring(0, 5);
         }
-        // Si viene como HH:mm:ss
         if (timeStr.length >= 5) {
             return timeStr.substring(0, 5);
         }
@@ -86,7 +169,7 @@ const IncubadoraHistorial = () => {
             </h3>
 
             {/* Filtros */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Incubadora
@@ -104,6 +187,25 @@ const IncubadoraHistorial = () => {
                     </select>
                 </div>
 
+                {/* Filtro por Año */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Año
+                    </label>
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => handleYearChange(e.target.value)}
+                        className="block w-full border-gray-300 rounded-md shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2 border bg-gray-50"
+                    >
+                        <option value="">Personalizado</option>
+                        {availableYears.map((year) => (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Fecha Inicio
@@ -111,7 +213,10 @@ const IncubadoraHistorial = () => {
                     <input
                         type="date"
                         value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
+                        onChange={(e) => {
+                            setStartDate(e.target.value);
+                            setSelectedYear(""); // Si cambia manual, limpiar año
+                        }}
                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2 border bg-gray-50"
                     />
                 </div>
@@ -124,7 +229,10 @@ const IncubadoraHistorial = () => {
                         <input
                             type="date"
                             value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
+                            onChange={(e) => {
+                                setEndDate(e.target.value);
+                                setSelectedYear(""); // Si cambia manual, limpiar año
+                            }}
                             className="block w-full border-gray-300 rounded-md shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2 border bg-gray-50"
                         />
                     </div>
@@ -139,12 +247,7 @@ const IncubadoraHistorial = () => {
                             onClick={() => {
                                 setStartDate("");
                                 setEndDate("");
-                                // UseEffect re-fetching happens on render if deps change, but here specific call is better
-                                // Actually, handleSearch triggers re-fetch.
-                                // Let's simplify: clearing state won't auto-fetch unless we useEffect on dates, which we aren't.
-                                // So we need to trigger search manually or make useEffect depend on dates?
-                                // User usually expects "Filter" button to trigger. But for clear, we want immediate effect?
-                                // For now, just clear. User clicks filter again or I can call fetch.
+                                setSelectedYear("");
                                 setTimeout(fetchHistory, 0);
                             }}
                             className="h-[38px] mt-auto px-3 py-2 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 transition"

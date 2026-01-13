@@ -9,6 +9,8 @@ const incubadoraController = require('../controllers/incubadoraController');
 router.post('/consolidar', protectRouteINF, incubadoraController.consolidar);
 router.get('/list', protectRouteINF, incubadoraController.getIncubadoras);
 router.get('/history/:incubadora_id', protectRouteINF, incubadoraController.getIncubadoraHistory);
+router.get('/years/:incubadora_id', protectRouteINF, incubadoraController.getAvailableYears);
+router.get('/range/:incubadora_id', protectRouteINF, incubadoraController.getIncubadoraDateRange);
 
 // 3. Exportar el router
 module.exports = router;

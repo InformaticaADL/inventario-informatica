@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import api from "@/api/apiConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { toast } from 'react-toastify';
 
 dayjs.extend(utc);
 
@@ -11,16 +12,26 @@ const IncubadoraUpload = () => {
   const [log, setLog] = useState("");
   const [incubadoraId, setIncubadoraId] = useState("INC.12 LAB.BAM.PM");
 
-  // Mapeo de validación: IncubadoraID -> Identificador en Excel (Row 0, Col 2)
+  // Mapeo: IncubadoraID -> { id: InternalExcelID, keyword: FilenameKeyword }
   const INCUBATOR_MAPPING = {
-    "INC.12 LAB.BAM.PM": "PM.VIR-inc-01 ch1",
-    "INC.07_06.LAB.CCE.PM": "INC.06/LAB. CCE.PM",
-    "INC.04.LAB.CCE.PM": "PM.VIR-inc-01 ch1"
+    "INC.12 LAB.BAM.PM": { id: "PM.VIR-inc-01 ch1", keyword: "INC.12" },
+    "INC.07_06.LAB.CCE.PM": { id: "INC.06/LAB. CCE.PM", keyword: "INC.07" }, // O ajusta si el archivo dice 07_06
+    "INC.04.LAB.CCE.PM": { id: "PM.VIR-inc-01 ch1", keyword: "INC.04" }
   };
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // 1. VALIDACIÓN POR NOMBRE DE ARCHIVO (Seguridad Primaria)
+    const mapping = INCUBATOR_MAPPING[incubadoraId];
+    if (mapping && mapping.keyword) {
+      if (!file.name.includes(mapping.keyword)) {
+        toast.error(`❌ Archivo Incorrecto. Para ${incubadoraId} el archivo debe contener "${mapping.keyword}" en su nombre.`);
+        e.target.value = null; // Reset input
+        return;
+      }
+    }
 
     setLoading(true);
     setLog(`Procesando archivo para ${incubadoraId}...`);
@@ -32,11 +43,11 @@ const IncubadoraUpload = () => {
         if (data && data.length > 0) {
           await uploadData(data, file.name);
         } else {
-          // Si data es vacío (y no tiró error), asumimos que el log ya fue seteado por la validación
           setLoading(false);
         }
       } catch (err) {
         console.error(err);
+        toast.error("Error al leer el archivo Excel.");
         setLog("❌ Error al leer el archivo Excel.");
         setLoading(false);
       }
@@ -47,119 +58,70 @@ const IncubadoraUpload = () => {
 
   const parseExcelData = async (buffer) => {
     const workbook = XLSX.read(buffer, { type: 'array' });
-    console.log("📚 Workbook Sheet Names:", workbook.SheetNames);
 
     if (workbook.SheetNames.length === 0) {
-      console.error("❌ No sheets found in workbook");
+      toast.error("El archivo Excel no tiene hojas.");
       return [];
     }
 
     // Buscamos explícitamente la hoja "Datos"
     let sheetName = workbook.SheetNames.find(name => name === "Datos");
 
-    // Si no existe, usamos la primera
     if (!sheetName) {
-      console.warn("⚠️ Sheet 'Datos' not found. Falling back to first sheet:", workbook.SheetNames[0]);
+      console.warn("⚠️ Sheet 'Datos' not found. Falling back to first sheet.");
       sheetName = workbook.SheetNames[0];
     }
 
     const sheet = workbook.Sheets[sheetName];
-    console.log(`📄 Reading Sheet: "${sheetName}"`);
-    console.log("DATA RANGE:", sheet['!ref']);
-
-    // Convertir a array de arrays con cellDates: false para obtener los valores crudos (números seriales)
-    // Esto evita que xlsx intente convertir a Date con la zona horaria del navegador, lo que causa el error del día anterior.
+    // Convertir a array de arrays
     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, cellDates: false });
-    console.log("📊 Raw Excel Data (Length):", jsonData.length);
 
-    // --- VALIDACIÓN DE IDENTIDAD ---
+    // --- VALIDACIÓN DE IDENTIDAD (Seguridad Secundaria) ---
     if (jsonData.length > 0) {
       const row0 = jsonData[0];
-      // El identificador suele estar en la columna 2 (índice 2)
       const fileIdentifier = row0 && row0[2] ? String(row0[2]).trim() : "DESCONOCIDO";
-      const expectedIdentifier = INCUBATOR_MAPPING[incubadoraId];
 
-      console.log(`🔍 Validación: Esperado "${expectedIdentifier}" vs Encontrado "${fileIdentifier}"`);
+      const mapping = INCUBATOR_MAPPING[incubadoraId];
+      const expectedIdentifier = mapping ? mapping.id : null;
 
       if (expectedIdentifier && fileIdentifier !== expectedIdentifier) {
-        setLog(`❌ Error de Seguridad: El archivo pertenece a la incubadora "${fileIdentifier}" pero has seleccionado "${incubadoraId}".`);
-        return []; // Abortar
+        toast.error(`❌ Error de Contenido: El archivo dice ser "${fileIdentifier}" pero se espera "${expectedIdentifier}".`);
+        setLog(`❌ Error interno: ID Excel "${fileIdentifier}" no coincide con "${expectedIdentifier}".`);
+        return [];
       }
     }
     // --------------------------------
 
-    // Asumimos que la primera fila es header, empezamos desde la fila 1 (indice 1)
-    const parsed = [];
+    // ... Resto del parsing (omitido en el reemplazo si no cambia, pero necesito asegurar que jsonData está en scope)
+    // El código original sigue aquí...
 
-    // Saltamos el header (i = 1)
+    // RECONSTRUYENDO EL LOOP DE PARSEO PARA NO ROMPER EL ARCHIVO
+    const parsed = [];
     for (let i = 1; i < jsonData.length; i++) {
       const row = jsonData[i];
       if (!row || row.length === 0) continue;
+      if (!row[0]) continue;
 
-      // Validación simple: Si no hay fecha/hora, saltamos
-      if (!row[0]) {
-        console.warn(`⚠️ Row ${i} skipped: No date found in column 0`, row);
-        continue;
-      }
-
-      // Parsear Fecha y Hora
       let rawDate = row[0];
       let fechaPart = "";
       let horaPart = "";
 
-      // Con cellDates: true, xlsx devuelve objetos Date nativos
-      // Con cellDates: true, xlsx devuelve objetos Date nativos
       if (rawDate instanceof Date) {
-        // Usamos dayjs local para mantener la fecha tal cual se ve en el Excel
-        // .format() respeta el año/mes/dia local del objeto Date
         fechaPart = dayjs(rawDate).format("YYYY-MM-DD");
         horaPart = dayjs(rawDate).format("HH:mm");
       } else if (typeof rawDate === 'number') {
-        // EXCEL SERIAL NUMBER (Ej: 45260.5)
-        // El formato de celda en Excel probablemente es "General" y no "Date", por eso cellDates no lo convirtió.
-        // Volvemos a la fórmula manual, pero USANDO UTC para evitar el error de desfase de zona horaria (30-11 vs 01-12).
-
-        // Conversión estándar: (value - 25569) * 86400 * 1000
         const dateObj = new Date(Math.round((rawDate - 25569) * 86400 * 1000));
-
-        // IMPORTANTE: El objeto Date creado representa el instante en UTC.
-        // Si usamos .format() "local", JS restará 3/4 horas (Chile) y volveremos al 30-11.
-        // Por eso AQUÍ usamos .utc() para extraer la fecha "visual" del Excel.
         fechaPart = dayjs.utc(dateObj).format("YYYY-MM-DD");
         horaPart = dayjs.utc(dateObj).format("HH:mm");
       } else {
-        // Fallback por si viene como string
-        // Intentar formatos explícitos (es posible que dayjs falle con DD-MM-YYYY por defecto)
-        // Nota: requiere customParseFormat si no es estándar, pero voy a intentar validar primero
         const d = dayjs(rawDate);
-
         if (d.isValid()) {
           fechaPart = d.format("YYYY-MM-DD");
           horaPart = d.format("HH:mm");
         } else {
-          // Intento manual simple para DD-MM-YYYY (común en latam) si dayjs falla
-          // regex para dd-mm-yyyy o dd/mm/yyyy
-          // ... (simplified checking)
-          if (typeof rawDate === 'string' && (rawDate.includes('-') || rawDate.includes('/'))) {
-            // Si el formato es DD-MM-YYYY...
-            // Pero mejor dejemos que el log nos diga qué está pasando.
-          }
           continue;
         }
       }
-
-      // Mapeo de valores
-      // Columnas con gaps (según log del usuario):
-      // 0: Fecha
-      // 2: Temp Min
-      // 4: Temp Max
-      // 6: Temp Min 2
-      // 8: Temp Max 2
-      // 10: Tiempo Puerta
-      // 12: Tiempo Motor
-      // 14: Tiempo Red
-      // 16: Tiempo Alarma
-      // 18: Observaciones
 
       parsed.push({
         fecha: fechaPart,
@@ -168,9 +130,8 @@ const IncubadoraUpload = () => {
         temp_maxima: normalizeTemp(row[4]),
         temp_minima_2: normalizeTemp(row[6]),
         temp_maxima_2: normalizeTemp(row[8]),
-
         tiempo_puerta: Math.round(row[10] || 0),
-        tiempo_motor: parseFloat((parseFloat(row[12] || 0)).toFixed(1)), // 1 decimal
+        tiempo_motor: parseFloat((parseFloat(row[12] || 0)).toFixed(1)),
         tiempo_red: Math.round(row[14] || 0),
         tiempo_alarma: Math.round(row[16] || 0),
         observaciones: row[18] || ""
@@ -183,8 +144,6 @@ const IncubadoraUpload = () => {
   const normalizeTemp = (val) => {
     if (!val) return 0;
     const num = parseFloat(val);
-    // Heurística: Si es mayor a 50, asumir que viene x10 (ej: 180 -> 18.0)
-    // Si viene como 18.2, se queda igual.
     if (num > 50) return num / 10;
     return num;
   };
@@ -199,15 +158,33 @@ const IncubadoraUpload = () => {
 
       const { nuevosInsertados, omitidosDuplicados } = res.data;
 
-      setLog(`✅ ${fileName} procesado para ${incubadoraId}. (Guardados: ${nuevosInsertados}, Duplicados: ${omitidosDuplicados})`);
+      let msg = "";
+      let type = "success";
+
+      if (nuevosInsertados > 0 && omitidosDuplicados === 0) {
+        // Caso Ideal
+        msg = `✅ Éxito: Se guardaron ${nuevosInsertados} nuevos registros.`;
+        toast.success(msg);
+      } else if (nuevosInsertados > 0 && omitidosDuplicados > 0) {
+        // Caso Mixto
+        msg = `⚠️ Carga Parcial: ${nuevosInsertados} nuevos guardados. (Se omitieron ${omitidosDuplicados} repetidos).`;
+        toast.info(msg);
+      } else if (nuevosInsertados === 0 && omitidosDuplicados > 0) {
+        // Caso Duplicados
+        msg = `ℹ️ Sin cambios: Todos los datos (${omitidosDuplicados}) ya existían en la base de datos.`;
+        toast.warning(msg);
+      } else {
+        // Caso Raro (0 y 0)
+        msg = "⚠️ El archivo no contenía datos válidos para procesar.";
+        toast.warning(msg);
+      }
+
+      setLog(msg);
 
     } catch (error) {
       console.error(error);
-      if (error.response) {
-        setLog(`❌ Error del servidor: ${error.response.data.message || 'Desconocido'}`);
-      } else {
-        setLog("❌ Error de conexión al intentar guardar.");
-      }
+      const errMsg = error.response?.data?.message || "Error al guardar los datos.";
+      setLog(`❌ ${errMsg}`);
     } finally {
       setLoading(false);
     }
@@ -256,13 +233,13 @@ const IncubadoraUpload = () => {
           />
         </label>
 
-        {/* Área de Logs */}
-        <div className={`p-3 rounded text-sm font-medium ${log.includes('✅') ? 'bg-green-50 text-green-700' :
+        {/* Área de Logs (Eliminada por solicitud del usuario, usamos Toasts) */}
+        {/* <div className={`p-3 rounded text-sm font-medium ${log.includes('✅') ? 'bg-green-50 text-green-700' :
           log.includes('❌') ? 'bg-red-50 text-red-700' :
             log ? 'bg-blue-50 text-blue-700' : 'hidden'
           }`}>
           {log}
-        </div>
+        </div> */}
       </div>
     </div>
   );
