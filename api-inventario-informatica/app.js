@@ -61,11 +61,11 @@ app.use(limiter);
 // Resto de tus rutas...
 // Resto de tus rutas...
 const usuarioRoutes = require('./routes/usuarioRoutes');
-const incubadoraRoutes = require('./routes/incubadoraRoutes');
+// const incubadoraRoutes = require('./routes/incubadoraRoutes'); // Removed
 
 
 app.use("/api/usuario", usuarioRoutes);
-app.use('/api/incubadora', incubadoraRoutes);
+// app.use('/api/incubadora', incubadoraRoutes); // Removed
 
 
 const IP = process.env.HOST_IP || '192.168.10.52';
