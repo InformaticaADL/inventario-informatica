@@ -61,14 +61,32 @@ app.use(limiter);
 // Resto de tus rutas...
 // Resto de tus rutas...
 const usuarioRoutes = require('./routes/usuarioRoutes');
-// const incubadoraRoutes = require('./routes/incubadoraRoutes'); // Removed
-
 
 app.use("/api/usuario", usuarioRoutes);
-// app.use('/api/incubadora', incubadoraRoutes); // Removed
+const inventarioRoutes = require('./routes/inventarioRoutes');
+app.use('/api/inventario', inventarioRoutes);
+const seccionRoutes = require('./routes/seccionRoutes');
+app.use('/api/seccion', seccionRoutes);
+const sedeRoutes = require('./routes/sedeRoutes');
+app.use('/api/sede', sedeRoutes);
+const tipoEquipoRoutes = require('./routes/tipoEquipoRoutes');
+app.use('/api/tipo-equipo', tipoEquipoRoutes);
+const marcaRoutes = require('./routes/marcaRoutes');
+app.use('/api/marca', marcaRoutes);
+const ubicacionRoutes = require('./routes/ubicacionRoutes');
+app.use('/api/ubicacion', ubicacionRoutes);
+const ramRoutes = require('./routes/ramRoutes');
+app.use('/api/ram', ramRoutes);
+const almacenamientoRoutes = require('./routes/almacenamientoRoutes');
+app.use('/api/almacenamiento', almacenamientoRoutes);
+const soRoutes = require('./routes/soRoutes');
+app.use('/api/so', soRoutes);
+const officeRoutes = require('./routes/officeRoutes');
+app.use('/api/office', officeRoutes);
 
 
-const IP = process.env.HOST_IP || '192.168.10.52';
+
+const IP = '0.0.0.0';
 const PORT = process.env.PORT || 9001;
 
 sequelizeInstance.sync().then(() => {

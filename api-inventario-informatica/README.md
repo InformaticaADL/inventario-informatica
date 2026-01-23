@@ -1,6 +1,6 @@
-# API Lector de Temperatura
+# API Inventario Informática
 
-Backend del sistema de monitoreo de temperaturas, construido con Node.js, Express y Sequelize.
+Backend del sistema de inventario informático, construido con Node.js, Express y Sequelize.
 
 ## Requisitos
 

@@ -1,0 +1,177 @@
+[
+  {
+    "COLUMN_NAME": "id_inventario",
+    "DATA_TYPE": "int",
+    "IS_NULLABLE": "NO"
+  },
+  {
+    "COLUMN_NAME": "estado",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "operativo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "proveedor",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "n_factura",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "fecha_factura",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "valor_neto",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "frecuencia_mantencion",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "fecha_adquisicion",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "fecha_recepcion",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "sede",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "unidad",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "nombre_responsable",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "nombre_equipo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "nombre_usuario",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "password",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "ip",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "tipo_equipo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "ubicacion",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "anydesk",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "marca",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "modelo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "serie",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "codigo_adl",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "sistema_operativo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "maquina_virtual",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "office",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "ram",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "procesador",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "disco_duro",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "correo",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "id_teamviewer",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "observaciones",
+    "DATA_TYPE": "nvarchar",
+    "IS_NULLABLE": "YES"
+  },
+  {
+    "COLUMN_NAME": "createdAt",
+    "DATA_TYPE": "datetimeoffset",
+    "IS_NULLABLE": "NO"
+  },
+  {
+    "COLUMN_NAME": "updatedAt",
+    "DATA_TYPE": "datetimeoffset",
+    "IS_NULLABLE": "NO"
+  }
+]

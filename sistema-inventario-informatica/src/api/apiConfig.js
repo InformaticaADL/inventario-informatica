@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie'; // ✅ IMPORTANTE: Importamos js-cookie
 
 const api = axios.create({
-  baseURL: 'http://192.168.10.52:8001/api',
+  baseURL: 'http://localhost:8001/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -13,17 +13,17 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // 1. AHORA BUSCAMOS EN LAS COOKIES (donde lo guardó el Login)
-    const token = Cookies.get('token'); 
+    const token = Cookies.get('token');
 
     // --- DEBUG LOGS ---
     console.group("🚀 Interceptor Axios");
     console.log("📍 URL:", config.url);
-    console.log("🍪 Token en Cookies:", token ? "Encontrado" : "No encontrado"); 
-    
+    console.log("🍪 Token en Cookies:", token ? "Encontrado" : "No encontrado");
+
     if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     } else {
-        console.warn("⚠️ ALERTA: No hay token en las Cookies.");
+      console.warn("⚠️ ALERTA: No hay token en las Cookies.");
     }
     console.groupEnd();
     // ------------------

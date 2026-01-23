@@ -1,6 +1,6 @@
-# Sistema Lector de Temperatura
+# Sistema Inventario Informática
 
-Este proyecto es una solución integral para el monitoreo y registro de temperaturas (particularmente para incubadoras), compuesto por una API RESTful y una aplicación web Frontend.
+Este proyecto es una solución integral para la gestión de activos informáticos (Hardware y Software), compuesto por una API RESTful y una aplicación web Frontend.
 
 ## Estructura del Proyecto
 

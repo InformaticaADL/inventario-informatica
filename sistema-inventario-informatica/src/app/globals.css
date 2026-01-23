@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 
-body {
-  @apply bg-zinc-500
-}
+
 
 @layer utilities {
   .text-balance {

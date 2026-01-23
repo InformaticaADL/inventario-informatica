@@ -28,5 +28,13 @@ export const useAuth = () => {
     setLoading(false);
   }, []);
 
-  return { user, loading };
+  const logout = () => {
+    Cookies.remove('usuario');
+    Cookies.remove('seccion');
+    Cookies.remove('id');
+    Cookies.remove('token');
+    window.location.href = '/';
+  };
+
+  return { user, loading, logout };
 };

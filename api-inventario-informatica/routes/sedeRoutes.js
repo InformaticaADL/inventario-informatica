@@ -1,8 +1,7 @@
-const express = require("express");
-const {getSedeList} = require("../controllers/sedeController")
-
+const express = require('express');
 const router = express.Router();
+const sedeController = require('../controllers/sedeController');
 
-router.get("/", getSedeList);
+router.get('/', sedeController.getAllSedes);
 
-module.exports = router
+module.exports = router;

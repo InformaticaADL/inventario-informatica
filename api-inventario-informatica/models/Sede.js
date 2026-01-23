@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const Sede = sequelize.define(
-        "Sede",
+        "mae_lugaranalisis",
         {
             id_lugaranalisis: {
                 type: DataTypes.INTEGER,
@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             nombre_lugaranalisis: {
                 type: DataTypes.STRING(30),
-                allowNull: false,
+                allowNull: true,
             },
             sigla: {
                 type: DataTypes.STRING(3),
@@ -29,12 +29,14 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
             },
         },
+
         {
             tableName: "mae_lugaranalisis",
             freezeTableName: true,
             timestamps: false,
         }
     );
+
     Sede.associate = (models) => {
         // Asociaciones eliminadas
     };
