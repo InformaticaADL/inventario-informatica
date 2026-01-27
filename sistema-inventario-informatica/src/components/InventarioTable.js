@@ -227,8 +227,8 @@ const InventarioTable = () => {
                     <thead className="bg-gray-50">
                         <tr>
                             {/* Define columns explicitly for better control or map keys for dynamic */}
-                            {['Sede', 'Operativo', 'Estado', 'Equipo', 'Usuario', 'Ubicacion', 'Modelo', 'IP', 'Acciones'].map((header, idx) => {
-                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Estado': 'estado', 'Equipo': 'nombre_equipo', 'Usuario': 'nombre_usuario', 'Ubicacion': 'ubicacion', 'Modelo': 'modelo', 'IP': 'ip' };
+                            {['Sede', 'Operativo', 'Estado', 'Responsable', 'Usuario', 'Ubicacion', 'Modelo', 'IP', 'Acciones'].map((header, idx) => {
+                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Estado': 'estado', 'Responsable': 'nombre_responsable', 'Usuario': 'nombre_usuario', 'Ubicacion': 'ubicacion', 'Modelo': 'modelo', 'IP': 'ip' };
                                 const key = keyMap[header];
                                 return (
                                     <th
@@ -269,7 +269,7 @@ const InventarioTable = () => {
                                         {item.estado || 'N/A'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nombre_equipo}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nombre_responsable}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nombre_usuario}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.ubicacion}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.modelo}</td>

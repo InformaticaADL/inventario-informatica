@@ -6,8 +6,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Screening ADL",
-  description: "Sistema Screening ADL",
+  title: "Inventario ADL",
+  description: "Sistema de Inventario Informática ADL",
   icons: {
     icon: '/favicon.ico',
   },
@@ -26,9 +26,8 @@ const RootLayout = ({ children }) => {
       <body
         className={`font-sans ${inter.className} bg-zinc-50 text-gray-800`}
       >
-        {/* ENVUELVE EL CONTENIDO CON EL PROVIDER DE CLIENTE */}
         <ToastProvider>
-          <main>{children}</main>
+          {children}
         </ToastProvider>
       </body>
     </html>
