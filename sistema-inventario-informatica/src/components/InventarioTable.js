@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus } from "react-icons/fa";
+import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle } from "react-icons/fa";
 import api from "@/api/apiConfig";
 
 import InventarioModal from "./InventarioModal";
@@ -14,6 +14,7 @@ const InventarioTable = () => {
     const [operativoFilter, setOperativoFilter] = useState("ALL"); // ALL, SI, NO
     const [sedeFilter, setSedeFilter] = useState("ALL");
     const [seccionFilter, setSeccionFilter] = useState("ALL");
+    const [soFilter, setSoFilter] = useState("ALL");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -33,7 +34,7 @@ const InventarioTable = () => {
 
     useEffect(() => {
         applyFilters();
-    }, [searchTerm, operativoFilter, sedeFilter, seccionFilter, data]);
+    }, [searchTerm, operativoFilter, sedeFilter, seccionFilter, soFilter, data]);
 
     const fetchData = async () => {
         try {
@@ -47,9 +48,11 @@ const InventarioTable = () => {
     };
 
     // Derive unique sedes for the filter dropdown
-    const uniqueSedes = [...new Set(data.map(item => item.sede).filter(Boolean))].sort();
+    const uniqueSedes = [...new Set(data.map(item => item.sede ? item.sede.toUpperCase() : "").filter(Boolean))].sort();
     // Derive unique secciones for the filter dropdown
     const uniqueSecciones = [...new Set(data.map(item => item.unidad).filter(Boolean))].sort();
+    // Derive unique SOs for the filter dropdown
+    const uniqueSos = [...new Set(data.map(item => item.sistema_operativo ? item.sistema_operativo.toUpperCase() : "").filter(Boolean))].sort();
 
     const applyFilters = () => {
         let filtered = data;
@@ -73,12 +76,17 @@ const InventarioTable = () => {
 
         // Sede Filter
         if (sedeFilter !== "ALL") {
-            filtered = filtered.filter((item) => item.sede === sedeFilter);
+            filtered = filtered.filter((item) => item.sede && item.sede.toUpperCase() === sedeFilter);
         }
 
         // Seccion Filter
         if (seccionFilter !== "ALL") {
             filtered = filtered.filter((item) => item.unidad === seccionFilter);
+        }
+
+        // SO Filter
+        if (soFilter !== "ALL") {
+            filtered = filtered.filter((item) => item.sistema_operativo && item.sistema_operativo.toUpperCase() === soFilter);
         }
 
         setFilteredData(filtered);
@@ -116,7 +124,18 @@ const InventarioTable = () => {
         setIsModalOpen(true);
     };
 
-
+    const handleToggleRevisado = async (item, e) => {
+        e.stopPropagation();
+        try {
+            const updatedItem = { ...item, revisado: !item.revisado };
+            await api.put(`/inventario/${item.id_inventario}`, updatedItem);
+            // Optimistic update or refresh
+            setData(prev => prev.map(i => i.id_inventario === item.id_inventario ? updatedItem : i));
+        } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Error al actualizar estado");
+        }
+    };
 
     const handleView = (item) => {
         setViewItem(item);
@@ -203,6 +222,18 @@ const InventarioTable = () => {
                         ))}
                     </select>
 
+                    {/* SO Filter */}
+                    <select
+                        value={soFilter}
+                        onChange={(e) => setSoFilter(e.target.value)}
+                        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                    >
+                        <option value="ALL">Todo S.O.</option>
+                        {uniqueSos.map((so) => (
+                            <option key={so} value={so}>{so}</option>
+                        ))}
+                    </select>
+
                     <div className="relative">
                         <input
                             type="text"
@@ -227,8 +258,8 @@ const InventarioTable = () => {
                     <thead className="bg-gray-50">
                         <tr>
                             {/* Define columns explicitly for better control or map keys for dynamic */}
-                            {['Sede', 'Operativo', 'Estado', 'Responsable', 'Usuario', 'Ubicacion', 'Modelo', 'IP', 'Acciones'].map((header, idx) => {
-                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Estado': 'estado', 'Responsable': 'nombre_responsable', 'Usuario': 'nombre_usuario', 'Ubicacion': 'ubicacion', 'Modelo': 'modelo', 'IP': 'ip' };
+                            {['Revisado', 'Sede', 'Operativo', 'Estado', 'Responsable', 'Usuario', 'Ubicacion', 'Modelo', 'IP', 'Acciones'].map((header, idx) => {
+                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Revisado': 'revisado', 'Estado': 'estado', 'Responsable': 'nombre_responsable', 'Usuario': 'nombre_usuario', 'Ubicacion': 'ubicacion', 'Modelo': 'modelo', 'IP': 'ip' };
                                 const key = keyMap[header];
                                 return (
                                     <th
@@ -255,7 +286,19 @@ const InventarioTable = () => {
                                 className="hover:bg-blue-50 transition-colors cursor-pointer"
                             >
                                 {/* ID Column removed */}
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{item.sede}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                    <button
+                                        onClick={(e) => handleToggleRevisado(item, e)}
+                                        className={`p-1.5 rounded-full transition-all ${item.revisado
+                                            ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                                            }`}
+                                        title={item.revisado ? "Marcado como revisado" : "Pendiente de revisión"}
+                                    >
+                                        <FaCheckCircle size={18} />
+                                    </button>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{item.sede?.toUpperCase()}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${String(item.operativo).toUpperCase() === 'SI'
                                         ? 'bg-emerald-100 text-emerald-800'
@@ -303,10 +346,8 @@ const InventarioTable = () => {
                         Anterior
                     </button>
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        // Logic to show generic page numbers window could be complex, keeping simple for now
                         let pageNum = currentPage;
                         if (totalPages > 5) {
-                            // Simple shifting window
                             if (currentPage <= 3) pageNum = i + 1;
                             else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
                             else pageNum = currentPage - 2 + i;

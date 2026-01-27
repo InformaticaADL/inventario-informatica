@@ -52,6 +52,7 @@ const KPICard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
 const MetricsDashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [brandFilter, setBrandFilter] = useState("ACTIVOS"); // ACTIVOS, INACTIVOS, TODOS
     const router = useRouter();
 
     useEffect(() => {
@@ -128,8 +129,19 @@ const MetricsDashboard = () => {
         .sort((a, b) => b.value - a.value)
         .slice(0, 10);
 
-    // 5. Brands
-    const brandCount = data.reduce((acc, item) => {
+    // 5. Brands Logic with Filter
+
+    const getFilteredBrandData = () => {
+        let filtered = data;
+        if (brandFilter === 'ACTIVOS') {
+            filtered = data.filter(i => i.operativo === 'SI');
+        } else if (brandFilter === 'INACTIVOS') {
+            filtered = data.filter(i => i.operativo === 'NO');
+        }
+        return filtered;
+    };
+
+    const brandCount = getFilteredBrandData().reduce((acc, item) => {
         const brand = item.marca || 'Sin Marca';
         acc[brand] = (acc[brand] || 0) + 1;
         return acc;
@@ -220,9 +232,25 @@ const MetricsDashboard = () => {
 
                     {/* Brands (Pie Chart) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6">
-                            <FaChartPie className="text-indigo-500" />
-                            <h3 className="text-lg font-bold text-gray-800">Distribución por Marca</h3>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaChartPie className="text-indigo-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Distribución por Marca</h3>
+                            </div>
+                            <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
+                                {['ACTIVOS', 'INACTIVOS', 'TODOS'].map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setBrandFilter(filter)}
+                                        className={`px-3 py-1 rounded-md transition-all ${brandFilter === filter
+                                            ? 'bg-white text-indigo-600 shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                    >
+                                        {filter.charAt(0) + filter.slice(1).toLowerCase()}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                         <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">

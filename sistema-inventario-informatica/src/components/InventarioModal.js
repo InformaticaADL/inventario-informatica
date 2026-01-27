@@ -46,7 +46,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         ubicacion: "",
         modelo: "",
         ip: "",
-        estado: "",
+        estado: "Licenciado",
         operativo: "",
         sede: "",
         unidad: "",
@@ -55,7 +55,6 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         serie: "",
         codigo_adl: "",
         anydesk: "",
-        id_teamviewer: "",
         sistema_operativo: "",
         office: "",
         ram: "",
@@ -67,7 +66,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         n_factura: "",
         fecha_factura: "",
         valor_neto: "",
-        frecuencia_mantencion: "",
+        frecuencia_mantencion: "6 Meses",
         fecha_adquisicion: "",
         fecha_recepcion: "",
         observaciones: ""
@@ -113,6 +112,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         if (initialData) {
             setFormData({
                 ...initialData,
+                estado: "Licenciado",
                 fecha_adquisicion: initialData.fecha_adquisicion ? parseDate(initialData.fecha_adquisicion).format("YYYY-MM-DD") : "",
                 fecha_recepcion: initialData.fecha_recepcion ? parseDate(initialData.fecha_recepcion).format("YYYY-MM-DD") : "",
                 fecha_factura: initialData.fecha_factura ? parseDate(initialData.fecha_factura).format("YYYY-MM-DD") : ""
@@ -120,10 +120,10 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         } else {
             setFormData({
                 nombre_equipo: "", nombre_usuario: "", nombre_responsable: "", ubicacion: "", modelo: "",
-                ip: "", estado: "", operativo: "", sede: "", unidad: "", tipo_equipo: "", marca: "",
-                serie: "", codigo_adl: "", anydesk: "", id_teamviewer: "", sistema_operativo: "",
+                ip: "", estado: "Licenciado", operativo: "", sede: "", unidad: "", tipo_equipo: "", marca: "",
+                serie: "", codigo_adl: "", anydesk: "", sistema_operativo: "",
                 office: "", ram: "", procesador: "", disco_duro: "", correo: "", password: "",
-                proveedor: "", n_factura: "", fecha_factura: "", valor_neto: "", frecuencia_mantencion: "",
+                proveedor: "", n_factura: "", fecha_factura: "", valor_neto: "", frecuencia_mantencion: "6 Meses",
                 fecha_adquisicion: "", fecha_recepcion: "", observaciones: ""
             });
         }
@@ -138,52 +138,6 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         e.preventDefault();
         onSubmit(formData);
     };
-
-    // Helper components for consistent styling
-    const SectionHeader = ({ title, icon: Icon }) => (
-        <div className="flex items-center gap-2 pb-2 mb-6 border-b border-gray-100 mt-2">
-            {Icon && <Icon className="text-blue-600" size={16} />}
-            <h4 className="text-base font-bold text-gray-800">{title}</h4>
-        </div>
-    );
-
-    const InputGroup = ({ label, name, type = "text", value, onChange, placeholder, className = "" }) => (
-        <div className={className}>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
-            <input
-                type={type}
-                name={name}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium placeholder-gray-400"
-            />
-        </div>
-    );
-
-    const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey, className = "" }) => (
-        <div className={className}>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
-            <div className="relative">
-                <select
-                    name={name}
-                    value={value}
-                    onChange={onChange}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium appearance-none cursor-pointer"
-                >
-                    <option value="">Seleccionar...</option>
-                    {options.map((opt, idx) => (
-                        <option key={idx} value={opt[valueKey] || opt}>
-                            {opt[labelKey] || opt}
-                        </option>
-                    ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-                </div>
-            </div>
-        </div>
-    );
 
     if (!isOpen) return null;
 
@@ -228,6 +182,8 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                                     <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
                                     <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }]} valueKey="id" labelKey="label" />
 
+                                    <InputGroup label="Estado" name="estado" value={formData.estado} readOnly={true} onChange={() => { }} />
+
                                     <SelectGroup label="Tipo Equipo" name="tipo_equipo" value={formData.tipo_equipo} onChange={handleChange} options={tiposEquipo} valueKey="nombre_tipoequipo" labelKey="nombre_tipoequipo" />
                                     <SelectGroup label="Marca" name="marca" value={formData.marca} onChange={handleChange} options={marcas} valueKey="nombre_marca" labelKey="nombre_marca" />
                                     <InputGroup label="Modelo" name="modelo" value={formData.modelo} onChange={handleChange} />
@@ -262,8 +218,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <InputGroup label="Dirección IP" name="ip" value={formData.ip} onChange={handleChange} className="font-mono" />
                                     <InputGroup label="AnyDesk ID" name="anydesk" value={formData.anydesk} onChange={handleChange} className="font-mono" />
-                                    <InputGroup label="TeamViewer ID" name="id_teamviewer" value={formData.id_teamviewer} onChange={handleChange} className="font-mono" />
-                                    <InputGroup label="Correo Asociado" name="correo" value={formData.correo} onChange={handleChange} />
+                                    <EmailTagsInput label="Correo Asociado" value={formData.correo} onChange={handleChange} />
                                     <InputGroup label="Password Equipo" name="password" value={formData.password} onChange={handleChange} />
                                 </div>
                             </div>
@@ -286,7 +241,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                                         <InputGroup label="Fecha Adquisición" name="fecha_adquisicion" type="date" value={formData.fecha_adquisicion} onChange={handleChange} />
                                         <InputGroup label="Fecha Recepción" name="fecha_recepcion" type="date" value={formData.fecha_recepcion} onChange={handleChange} />
                                     </div>
-                                    <InputGroup label="Frec. Mantención" name="frecuencia_mantencion" value={formData.frecuencia_mantencion} onChange={handleChange} placeholder="Ej: Semestral" />
+                                    <InputGroup label="Frec. Mantención" name="frecuencia_mantencion" value="6 Meses" readOnly={true} onChange={() => { }} />
                                 </div>
                             </div>
 
@@ -326,5 +281,126 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         </div>
     );
 };
+
+// Helper components moved outside
+const SectionHeader = ({ title, icon: Icon }) => (
+    <div className="flex items-center gap-2 pb-2 mb-6 border-b border-gray-100 mt-2">
+        {Icon && <Icon className="text-blue-600" size={16} />}
+        <h4 className="text-base font-bold text-gray-800">{title}</h4>
+    </div>
+);
+
+const InputGroup = ({ label, name, type = "text", value, onChange, placeholder, className = "", ...props }) => (
+    <div className={className}>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
+        <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            className={`w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium placeholder-gray-400 ${props.readOnly ? 'opacity-70 cursor-not-allowed bg-gray-100' : ''}`}
+            {...props}
+        />
+    </div>
+);
+
+const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey, className = "" }) => (
+    <div className={className}>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
+        <div className="relative">
+            <select
+                name={name}
+                value={value}
+                onChange={onChange}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium appearance-none cursor-pointer"
+            >
+                <option value="">Seleccionar...</option>
+                {options.map((opt, idx) => (
+                    <option key={idx} value={opt[valueKey] || opt}>
+                        {opt[labelKey] || opt}
+                    </option>
+                ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+            </div>
+        </div>
+    </div>
+);
+
+const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
+    const [inputValue, setInputValue] = useState("");
+    const [error, setError] = useState(null);
+
+    // Initial emails from value string (split by / or ,)
+    const emails = value ? value.split(/[\/,]+/).map(e => e.trim()).filter(Boolean) : [];
+
+    const handleKeyDown = (e) => {
+        if (['Enter', 'Tab', ','].includes(e.key)) {
+            e.preventDefault();
+            addEmail();
+        }
+    };
+
+    const addEmail = () => {
+        const email = inputValue.trim();
+        if (!email) return;
+
+        // Simple email regex validation
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Correo inválido");
+            return;
+        }
+
+        if (emails.includes(email)) {
+            setInputValue("");
+            return;
+        }
+
+        const newEmails = [...emails, email];
+        onChange({ target: { name: 'correo', value: newEmails.join(' / ') } });
+        setInputValue("");
+        setError(null);
+    };
+
+    const removeEmail = (emailToRemove) => {
+        const newEmails = emails.filter(email => email !== emailToRemove);
+        onChange({ target: { name: 'correo', value: newEmails.join(' / ') } });
+    };
+
+    return (
+        <div className={className}>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
+            <div className="w-full bg-gray-50 border border-gray-200 rounded-lg focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all p-2 min-h-[42px]">
+                <div className="flex flex-wrap gap-2">
+                    {emails.map((email, idx) => (
+                        <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-200">
+                            {email}
+                            <button
+                                type="button"
+                                onClick={() => removeEmail(email)}
+                                className="text-blue-400 hover:text-blue-900 focus:outline-none"
+                            >
+                                <FaTimes size={10} />
+                            </button>
+                        </div>
+                    ))}
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => { setInputValue(e.target.value); setError(null); }}
+                        onKeyDown={handleKeyDown}
+                        onBlur={addEmail}
+                        placeholder={emails.length === 0 ? "ingrese.correo@ejemplo.com" : ""}
+                        className="flex-1 bg-transparent outline-none text-sm text-gray-700 min-w-[150px]"
+                    />
+                </div>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        </div>
+    );
+};
+
 
 export default InventarioModal;

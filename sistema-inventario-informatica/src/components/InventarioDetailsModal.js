@@ -75,6 +75,11 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                 <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-mono border border-gray-300">
                                     ID: {data.id_inventario}
                                 </span>
+                                {data.codigo_adl && (
+                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-mono border border-purple-200">
+                                        ADL: {data.codigo_adl}
+                                    </span>
+                                )}
                                 <span className={getStatusStyle(data.estado)}>
                                     {data.estado || "Estado desconocido"}
                                 </span>
@@ -111,6 +116,7 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                     <div className="grid grid-cols-1 gap-4">
                                         <DetailItem label="Sede" value={data.sede} />
                                         <DetailItem label="Unidad / Sección" value={data.unidad} />
+                                        <DetailItem label="Ubicación Física" value={data.ubicacion} />
                                     </div>
                                 </div>
                             </div>
@@ -122,9 +128,10 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                 <DetailItem label="Marca" value={data.marca} />
                                 <DetailItem label="Modelo" value={data.modelo} />
                                 <DetailItem label="Procesador" value={data.procesador} />
-                                <DetailItem label="Memoria RAM" value={data.ram} />
+                                <DetailItem label="Memoria RAM" value={data.ram ? `${data.ram} GB` : null} />
                                 <DetailItem label="Disco Duro" value={data.disco_duro} />
-                                <DetailItem label="Sistema Operativo" value={data.sistema_operativo} colSpan={3} />
+                                <DetailItem label="Sistema Operativo" value={data.sistema_operativo} />
+                                <DetailItem label="Office" value={data.office} colSpan={2} />
                             </div>
 
                             {/* Network Info */}
@@ -133,6 +140,21 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                 <DetailItem label="Dirección IP" value={data.ip} isCode />
                                 <DetailItem label="AnyDesk ID" value={data.anydesk} isCode />
                                 <DetailItem label="Número de Serie" value={data.serie} isCode />
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Correos Asociados</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {data.correo ? (
+                                            data.correo.split(/[\/,]+/).map((email, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm">
+                                                    <span className="text-xs font-medium">{email.trim()}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <span className="text-gray-400 italic font-medium text-sm">No registrado</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <DetailItem label="Password Equipo" value={data.password} isCode />
                             </div>
                         </div>
 
@@ -151,11 +173,21 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                         label="Fecha de Recepción"
                                         value={data.fecha_recepcion ? parseDate(data.fecha_recepcion).format("DD/MM/YYYY") : null}
                                     />
-                                    <DetailItem label="Número de Factura" value={data.n_factura} />
                                     <DetailItem label="Proveedor" value={data.proveedor} />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DetailItem label="N° Factura" value={data.n_factura} />
+                                        <DetailItem
+                                            label="Fecha Factura"
+                                            value={data.fecha_factura ? parseDate(data.fecha_factura).format("DD/MM/YYYY") : null}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DetailItem label="Valor Neto" value={data.valor_neto} />
+                                        <DetailItem label="Frec. Mantención" value={data.frecuencia_mantencion} />
+                                    </div>
                                     <DetailItem
                                         label="Estado Operativo"
-                                        value={data.operativo === "SI" ? "Operativo" : "Inoperativo"}
+                                        value={data.operativo === "SI" ? "Operativo" : "De baja"}
                                         isStatus={data.operativo === "SI" ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs uppercase font-bold" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-xs uppercase font-bold"}
                                     />
                                 </div>

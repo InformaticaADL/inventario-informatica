@@ -25,16 +25,53 @@ const importData = async () => {
             return String(val);
         };
 
+        // Helper to parse Excel dates (Serial number or String)
+        const parseExcelDate = (val) => {
+            if (!val) return null;
+
+            // 1. Handle Excel Serial Date (Numbers)
+            // Excel base date is Dec 30, 1899 usually (Unix epoch is 1970-01-01)
+            // But common JS lib approach: new Date(Math.round((serial - 25569) * 86400 * 1000))
+            if (typeof val === 'number') {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().split('T')[0];
+                }
+            }
+
+            // 2. Handle Strings (DD/MM/YYYY or YYYY-MM-DD)
+            if (typeof val === 'string') {
+                const trimmed = val.trim();
+                // Try DD/MM/YYYY
+                if (trimmed.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                    const [day, month, year] = trimmed.split('/');
+                    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                }
+                // Try YYYY-MM-DD
+                if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    return trimmed;
+                }
+            }
+
+            // 3. Fallback: try standard Date constructor
+            const date = new Date(val);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+
+            return null; // Invalid date
+        };
+
         const records = data.map(row => ({
             estado: cleanString(row['ESTADO']),
             operativo: cleanString(row['OPERATIVO']),
             proveedor: cleanString(row['PROVEEDOR']),
             n_factura: cleanString(row['N° DE FACTURA']),
-            fecha_factura: cleanString(row['FECHA DE FACTURA']),
+            fecha_factura: parseExcelDate(row['FECHA DE FACTURA']),
             valor_neto: cleanString(row['VALOR NETO']),
             frecuencia_mantencion: cleanString(row['FRECUENCIA DE MANTENCIÓN']),
-            fecha_adquisicion: cleanString(row['FECHA DE ADQUISICIÓN']),
-            fecha_recepcion: cleanString(row['FECHA DE RECEPCIÓN']),
+            fecha_adquisicion: parseExcelDate(row['FECHA DE ADQUISICIÓN']),
+            fecha_recepcion: parseExcelDate(row['FECHA DE RECEPCIÓN']),
             sede: cleanString(row['SEDE']),
             unidad: cleanString(row['UNIDAD']),
             nombre_responsable: cleanString(row['NOMBRE RESPONSABLE']),

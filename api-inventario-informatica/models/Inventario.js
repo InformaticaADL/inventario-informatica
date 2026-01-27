@@ -130,6 +130,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: true,
         },
+        revisado: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
     }, {
         tableName: 'inventario',
         timestamps: true
