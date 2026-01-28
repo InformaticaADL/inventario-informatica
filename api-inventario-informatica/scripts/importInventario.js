@@ -22,7 +22,12 @@ const importData = async () => {
         // Helper to handle potential date strings or numbers
         const cleanString = (val) => {
             if (val === undefined || val === null) return null;
-            return String(val);
+            return String(val).trim();
+        };
+
+        const cleanUpperCase = (val) => {
+            if (val === undefined || val === null) return null;
+            return String(val).trim().toUpperCase();
         };
 
         // Helper to parse Excel dates (Serial number or String)
@@ -73,7 +78,7 @@ const importData = async () => {
             fecha_adquisicion: parseExcelDate(row['FECHA DE ADQUISICIÓN']),
             fecha_recepcion: parseExcelDate(row['FECHA DE RECEPCIÓN']),
             sede: cleanString(row['SEDE']),
-            unidad: cleanString(row['UNIDAD']),
+            unidad: cleanUpperCase(row['UNIDAD']),
             nombre_responsable: cleanString(row['NOMBRE RESPONSABLE']),
             nombre_equipo: cleanString(row['NOMBRE EQUIPO']),
             nombre_usuario: cleanString(row['NOMBRE USUARIO']),
@@ -117,7 +122,18 @@ const importData = async () => {
                 fs.appendFileSync('import_log.txt', errMsg);
             }
         }
+        // ... existing inserts ...
         console.log('Import completed.');
+
+        // Update Seccion Table from Inventario data
+        await db.Seccion.sync({ force: true });
+        console.log('Seccion table synced (FORCE).');
+
+        const uniqueSections = [...new Set(records.map(r => r.unidad).filter(Boolean))].sort();
+        const sectionRecords = uniqueSections.map(s => ({ nombre_seccion: s }));
+
+        await db.Seccion.bulkCreate(sectionRecords);
+        console.log(`Populated ${sectionRecords.length} sections.`);
 
     } catch (error) {
         console.error('Import failed:', error);
