@@ -101,6 +101,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
+        licencia_windows: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
 
         office: {
             type: DataTypes.STRING,

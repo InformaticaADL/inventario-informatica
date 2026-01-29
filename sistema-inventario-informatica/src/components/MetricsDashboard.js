@@ -79,8 +79,11 @@ const MetricsDashboard = () => {
 
     // 1. KPI Calculations
     const totalEquipos = data.length;
-    const activos = data.filter(i => i.operativo === 'SI').length;
-    const inactivos = data.filter(i => i.operativo === 'NO').length;
+
+    // Normalize and count
+    const activos = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'SI').length;
+    const inactivos = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'NO').length;
+    const otros = totalEquipos - (activos + inactivos);
 
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
     const totalValor = data.reduce((acc, item) => {
@@ -93,8 +96,12 @@ const MetricsDashboard = () => {
     // 2. Activos vs Inactivos (Chart Data)
     const operativoData = [
         { name: 'Activos', value: activos },
-        { name: 'Inactivos', value: inactivos }
+        { name: 'Inactivos', value: inactivos },
     ];
+
+    if (otros > 0) {
+        operativoData.push({ name: 'Sin Info / Otros', value: otros });
+    }
 
     // 3. Office Versions
     const officeCount = data.reduce((acc, item) => {
@@ -222,6 +229,7 @@ const MetricsDashboard = () => {
                                     >
                                         <Cell fill="#10b981" /> {/* Activos */}
                                         <Cell fill="#ef4444" /> {/* Inactivos */}
+                                        {otros > 0 && <Cell fill="#9ca3af" />} {/* Otros - Gray */}
                                     </Pie>
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -238,18 +246,25 @@ const MetricsDashboard = () => {
                                 <h3 className="text-lg font-bold text-gray-800">Distribución por Marca</h3>
                             </div>
                             <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
-                                {['ACTIVOS', 'INACTIVOS', 'TODOS'].map((filter) => (
-                                    <button
-                                        key={filter}
-                                        onClick={() => setBrandFilter(filter)}
-                                        className={`px-3 py-1 rounded-md transition-all ${brandFilter === filter
-                                            ? 'bg-white text-indigo-600 shadow-sm'
-                                            : 'text-gray-500 hover:text-gray-700'
-                                            }`}
-                                    >
-                                        {filter.charAt(0) + filter.slice(1).toLowerCase()}
-                                    </button>
-                                ))}
+                                <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
+                                    {['ACTIVOS', 'INACTIVOS', 'TODOS'].filter(f => {
+                                        if (f === 'TODOS') return true;
+                                        if (f === 'ACTIVOS') return activos > 0;
+                                        if (f === 'INACTIVOS') return inactivos > 0;
+                                        return true;
+                                    }).map((filter) => (
+                                        <button
+                                            key={filter}
+                                            onClick={() => setBrandFilter(filter)}
+                                            className={`px-3 py-1 rounded-md transition-all ${brandFilter === filter
+                                                ? 'bg-white text-indigo-600 shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-700'
+                                                }`}
+                                        >
+                                            {filter.charAt(0) + filter.slice(1).toLowerCase()}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                         <div className="h-72">

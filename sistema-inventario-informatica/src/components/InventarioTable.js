@@ -1,14 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import api from "@/api/apiConfig";
 
 import InventarioModal from "./InventarioModal";
 import InventarioDetailsModal from "./InventarioDetailsModal";
 
 const InventarioTable = () => {
+    const router = useRouter();
     const [data, setData] = useState([]);
-    const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [operativoFilter, setOperativoFilter] = useState("ALL"); // ALL, SI, NO
@@ -32,9 +33,7 @@ const InventarioTable = () => {
         fetchData();
     }, []);
 
-    useEffect(() => {
-        applyFilters();
-    }, [searchTerm, operativoFilter, sedeFilter, seccionFilter, soFilter, data]);
+
 
     const fetchData = async () => {
         try {
@@ -47,14 +46,7 @@ const InventarioTable = () => {
         }
     };
 
-    // Derive unique sedes for the filter dropdown
-    const uniqueSedes = [...new Set(data.map(item => item.sede ? item.sede.toUpperCase() : "").filter(Boolean))].sort();
-    // Derive unique secciones for the filter dropdown
-    const uniqueSecciones = [...new Set(data.map(item => item.unidad).filter(Boolean))].sort();
-    // Derive unique SOs for the filter dropdown
-    const uniqueSos = [...new Set(data.map(item => item.sistema_operativo ? item.sistema_operativo.toUpperCase() : "").filter(Boolean))].sort();
-
-    const applyFilters = () => {
+    const applyFilters = (excludeKey = null) => {
         let filtered = data;
 
         // Text Search
@@ -67,7 +59,7 @@ const InventarioTable = () => {
         }
 
         // Operativo Filter
-        if (operativoFilter !== "ALL") {
+        if (operativoFilter !== "ALL" && excludeKey !== "operativo") {
             filtered = filtered.filter((item) => {
                 const op = item.operativo ? String(item.operativo).toUpperCase() : "NO";
                 return op === operativoFilter;
@@ -75,23 +67,61 @@ const InventarioTable = () => {
         }
 
         // Sede Filter
-        if (sedeFilter !== "ALL") {
+        if (sedeFilter !== "ALL" && excludeKey !== "sede") {
             filtered = filtered.filter((item) => item.sede && item.sede.toUpperCase() === sedeFilter);
         }
 
         // Seccion Filter
-        if (seccionFilter !== "ALL") {
+        if (seccionFilter !== "ALL" && excludeKey !== "seccion") {
             filtered = filtered.filter((item) => item.unidad === seccionFilter);
         }
 
         // SO Filter
-        if (soFilter !== "ALL") {
+        if (soFilter !== "ALL" && excludeKey !== "so") {
             filtered = filtered.filter((item) => item.sistema_operativo && item.sistema_operativo.toUpperCase() === soFilter);
         }
 
-        setFilteredData(filtered);
-        setCurrentPage(1);
+        return filtered;
     };
+
+    // Calculate options based on *other* active filters (Cross-Filtering)
+    // 1. Available Sedes: Filtered by Everything EXCEPT Sede
+    const availableSedesData = applyFilters("sede");
+    const uniqueSedes = [...new Set(availableSedesData.map(item => item.sede ? item.sede.toUpperCase() : "").filter(Boolean))].sort();
+
+    // 2. Available Sections: Filtered by Everything EXCEPT Section
+    const availableSeccionesData = applyFilters("seccion");
+    const uniqueSecciones = [...new Set(availableSeccionesData.map(item => item.unidad).filter(Boolean))].sort();
+
+    // 3. Available SOs: Filtered by Everything EXCEPT SO
+    const availableSosData = applyFilters("so");
+    const uniqueSos = [...new Set(availableSosData.map(item => item.sistema_operativo ? item.sistema_operativo.toUpperCase() : "").filter(Boolean))].sort();
+
+    // 4. Available Statuses: Filtered by Everything EXCEPT Status
+    const availableStatusData = applyFilters("operativo");
+    const hasActivos = availableStatusData.some(i => i.operativo && String(i.operativo).toUpperCase().trim() === 'SI');
+    const hasInactivos = availableStatusData.some(i => i.operativo && String(i.operativo).toUpperCase().trim() === 'NO');
+
+    // Final filtered data for the table (Apply ALL filters & Sorting)
+    const baseFilteredData = applyFilters();
+    const filteredData = [...baseFilteredData].sort((a, b) => {
+        if (!sortConfig.key) return 0;
+        const key = sortConfig.key;
+        if (!a[key]) return 1;
+        if (!b[key]) return -1;
+
+        const valA = String(a[key]).toLowerCase();
+        const valB = String(b[key]).toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    // Pagination reset effect extracted
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, operativoFilter, sedeFilter, seccionFilter, soFilter, data]);
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value.toLowerCase());
@@ -103,19 +133,6 @@ const InventarioTable = () => {
             direction = "desc";
         }
         setSortConfig({ key, direction });
-
-        const sorted = [...filteredData].sort((a, b) => {
-            if (!a[key]) return 1;
-            if (!b[key]) return -1;
-
-            const valA = String(a[key]).toLowerCase();
-            const valB = String(b[key]).toLowerCase();
-
-            if (valA < valB) return direction === "asc" ? -1 : 1;
-            if (valA > valB) return direction === "asc" ? 1 : -1;
-            return 0;
-        });
-        setFilteredData(sorted);
     };
 
     const handleEdit = (item, e) => {
@@ -181,10 +198,15 @@ const InventarioTable = () => {
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">Inventario</h2>
 
-                <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="flex flex-col md:flex-row gap-4 items-center flex-wrap justify-end">
                     {/* Status Filters */}
                     <div className="flex bg-gray-100 p-1 rounded-lg">
-                        {['ALL', 'SI', 'NO'].map((status) => (
+                        {['ALL', 'SI', 'NO'].filter(status => {
+                            if (status === 'ALL') return true;
+                            if (status === 'SI') return hasActivos;
+                            if (status === 'NO') return hasInactivos;
+                            return true;
+                        }).map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setOperativoFilter(status)}
@@ -244,6 +266,7 @@ const InventarioTable = () => {
                         />
                         <FaSearch className="absolute left-3 top-3 text-gray-400" />
                     </div>
+
                     <button
                         onClick={() => { setSelectedItem(null); setIsModalOpen(true); }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"

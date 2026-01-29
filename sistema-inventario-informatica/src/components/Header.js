@@ -14,13 +14,15 @@ const Header = () => {
                 <div className="flex items-center justify-between h-24">
                     {/* Logo */}
                     <div className="flex items-center gap-4">
-                        <div className="relative w-auto h-20">
-                            <img
-                                src="/images/logo_adl.png"
-                                alt="ADL Logo"
-                                className="object-contain w-full h-full"
-                            />
-                        </div>
+                        <Link href="/dashboard" className="cursor-pointer">
+                            <div className="relative w-auto h-20">
+                                <img
+                                    src="/images/logo_adl.png"
+                                    alt="ADL Logo"
+                                    className="object-contain w-full h-full"
+                                />
+                            </div>
+                        </Link>
                         <div>
                             <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Inventario Informática</span>
                         </div>
@@ -28,6 +30,9 @@ const Header = () => {
 
                     {/* Right Side: Metrics Link + User Profile */}
                     <div className="flex items-center gap-6">
+                        <Link href="/reportes" className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm font-medium text-sm block">
+                            Reporte Office
+                        </Link>
                         <Link href="/dashboard/metrics" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm">
                             Ver Métricas
                         </Link>

@@ -126,14 +126,14 @@ const importData = async () => {
         console.log('Import completed.');
 
         // Update Seccion Table from Inventario data
-        await db.Seccion.sync({ force: true });
-        console.log('Seccion table synced (FORCE).');
+        // await db.Seccion.sync({ force: true });
+        // console.log('Seccion table synced (FORCE).');
 
-        const uniqueSections = [...new Set(records.map(r => r.unidad).filter(Boolean))].sort();
-        const sectionRecords = uniqueSections.map(s => ({ nombre_seccion: s }));
+        // const uniqueSections = [...new Set(records.map(r => r.unidad).filter(Boolean))].sort();
+        // const sectionRecords = uniqueSections.map(s => ({ nombre_seccion: s }));
 
-        await db.Seccion.bulkCreate(sectionRecords);
-        console.log(`Populated ${sectionRecords.length} sections.`);
+        // await db.Seccion.bulkCreate(sectionRecords);
+        // console.log(`Populated ${sectionRecords.length} sections.`);
 
     } catch (error) {
         console.error('Import failed:', error);
