@@ -31,7 +31,7 @@ const Header = () => {
                     {/* Right Side: Metrics Link + User Profile */}
                     <div className="flex items-center gap-6">
                         <Link href="/reportes" className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm font-medium text-sm block">
-                            Reporte Office
+                            Reporte
                         </Link>
                         <Link href="/dashboard/metrics" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm">
                             Ver Métricas

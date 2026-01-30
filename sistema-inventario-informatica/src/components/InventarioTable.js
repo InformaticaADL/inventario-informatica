@@ -2,12 +2,14 @@
 import { useState, useEffect } from "react";
 import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
 
 import InventarioModal from "./InventarioModal";
 import InventarioDetailsModal from "./InventarioDetailsModal";
 
 const InventarioTable = () => {
+    const { user } = useAuth();
     const router = useRouter();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,7 +40,12 @@ const InventarioTable = () => {
     const fetchData = async () => {
         try {
             const response = await api.get("/inventario");
-            setData(response.data);
+            // Normalize 'Aysén' to 'Aysen'
+            const normalizedData = response.data.map(item => ({
+                ...item,
+                sede: item.sede && item.sede.includes('Aysén') ? item.sede.replace('Aysén', 'Aysen') : item.sede
+            }));
+            setData(normalizedData);
             setLoading(false);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -119,12 +126,9 @@ const InventarioTable = () => {
     });
 
     // Pagination reset effect extracted
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, operativoFilter, sedeFilter, seccionFilter, soFilter, data]);
-
     const handleSearch = (e) => {
         setSearchTerm(e.target.value.toLowerCase());
+        setCurrentPage(1);
     };
 
     const handleSort = (key) => {
@@ -195,10 +199,10 @@ const InventarioTable = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">Inventario</h2>
+            <div className="flex flex-col md:flex-row items-center mb-6 gap-4">
+                <h2 className="text-2xl font-bold text-gray-800 mr-auto md:mr-4">Inventario</h2>
 
-                <div className="flex flex-col md:flex-row gap-4 items-center flex-wrap justify-end">
+                <div className="flex flex-col md:flex-row gap-2 items-center flex-wrap">
                     {/* Status Filters */}
                     <div className="flex bg-gray-100 p-1 rounded-lg">
                         {['ALL', 'SI', 'NO'].filter(status => {
@@ -209,7 +213,7 @@ const InventarioTable = () => {
                         }).map((status) => (
                             <button
                                 key={status}
-                                onClick={() => setOperativoFilter(status)}
+                                onClick={() => { setOperativoFilter(status); setCurrentPage(1); }}
                                 className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${operativoFilter === status
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
@@ -223,7 +227,7 @@ const InventarioTable = () => {
                     {/* Sede Filter */}
                     <select
                         value={sedeFilter}
-                        onChange={(e) => setSedeFilter(e.target.value)}
+                        onChange={(e) => { setSedeFilter(e.target.value); setCurrentPage(1); }}
                         className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
                     >
                         <option value="ALL">Todas las sedes</option>
@@ -235,7 +239,7 @@ const InventarioTable = () => {
                     {/* Seccion Filter */}
                     <select
                         value={seccionFilter}
-                        onChange={(e) => setSeccionFilter(e.target.value)}
+                        onChange={(e) => { setSeccionFilter(e.target.value); setCurrentPage(1); }}
                         className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
                     >
                         <option value="ALL">Todas las secciones</option>
@@ -247,7 +251,7 @@ const InventarioTable = () => {
                     {/* SO Filter */}
                     <select
                         value={soFilter}
-                        onChange={(e) => setSoFilter(e.target.value)}
+                        onChange={(e) => { setSoFilter(e.target.value); setCurrentPage(1); }}
                         className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
                     >
                         <option value="ALL">Todo S.O.</option>
@@ -256,23 +260,27 @@ const InventarioTable = () => {
                         ))}
                     </select>
 
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 transition-all"
-                        />
-                        <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Buscar..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 transition-all"
+                            />
+                            <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                        </div>
 
-                    <button
-                        onClick={() => { setSelectedItem(null); setIsModalOpen(true); }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                    >
-                        <FaPlus /> Nuevo
-                    </button>
+                        {user?.seccion === 'INF' && (
+                            <button
+                                onClick={() => { setSelectedItem(null); setIsModalOpen(true); }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap"
+                            >
+                                <FaPlus /> Nuevo
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -341,13 +349,14 @@ const InventarioTable = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.modelo}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                                    <button
-                                        onClick={(e) => handleEdit(item, e)}
-                                        className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-2 rounded-md transition-colors hover:bg-white z-10"
-                                    >
-                                        <FaEdit />
-                                    </button>
-
+                                    {user?.seccion === 'INF' && (
+                                        <button
+                                            onClick={(e) => handleEdit(item, e)}
+                                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-2 rounded-md transition-colors hover:bg-white z-10"
+                                        >
+                                            <FaEdit />
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

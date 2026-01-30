@@ -15,6 +15,8 @@ import {
     Faserver,
     FaChartPie
 } from 'react-icons/fa';
+import ValueDetailsModal from './ValueDetailsModal';
+import { useAuth } from '@/hooks/useAuth';
 
 // Modern Color Palette
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -53,7 +55,9 @@ const MetricsDashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [brandFilter, setBrandFilter] = useState("ACTIVOS"); // ACTIVOS, INACTIVOS, TODOS
+    const [showValueModal, setShowValueModal] = useState(false);
     const router = useRouter();
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -86,7 +90,11 @@ const MetricsDashboard = () => {
     const otros = totalEquipos - (activos + inactivos);
 
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
+    // Calculate approximate value if 'valor_neto' exists and is numeric-ish
     const totalValor = data.reduce((acc, item) => {
+        // Only count active equipment (robust check)
+        if (!item.operativo || item.operativo.trim().toUpperCase() !== 'SI') return acc;
+
         const val = parseFloat(item.valor_neto) || 0;
         return acc + val;
     }, 0);
@@ -101,6 +109,27 @@ const MetricsDashboard = () => {
 
     if (otros > 0) {
         operativoData.push({ name: 'Sin Info / Otros', value: otros });
+    }
+
+    // 2.5 Location Distribution (Oficina vs Terreno)
+    const locationCount = data.reduce((acc, item) => {
+        const ubicacion = item.ubicacion ? item.ubicacion.toLowerCase() : '';
+        if (ubicacion.includes('terreno')) {
+            acc.terreno++;
+        } else if (ubicacion.includes('oficina')) {
+            acc.oficina++;
+        } else {
+            acc.otros++;
+        }
+        return acc;
+    }, { oficina: 0, terreno: 0, otros: 0 });
+
+    const locationData = [
+        { name: 'Oficina', value: locationCount.oficina },
+        { name: 'Terreno', value: locationCount.terreno },
+    ];
+    if (locationCount.otros > 0) {
+        locationData.push({ name: 'Otro/Sin Info', value: locationCount.otros });
     }
 
     // 3. Office Versions
@@ -162,12 +191,14 @@ const MetricsDashboard = () => {
     return (
         <div className="p-8 bg-gray-50 min-h-screen font-sans">
             <div className="max-w-7xl mx-auto">
-                <button
-                    onClick={() => router.back()}
-                    className="mb-8 flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-200"
-                >
-                    <FaArrowLeft size={14} /> Volver al Inventario
-                </button>
+                {user?.seccion === 'INF' && (
+                    <button
+                        onClick={() => router.back()}
+                        className="mb-8 flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-200"
+                    >
+                        <FaArrowLeft size={14} /> Volver al Inventario
+                    </button>
+                )}
 
                 <div className="mb-10">
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Panel de Métricas</h1>
@@ -197,13 +228,15 @@ const MetricsDashboard = () => {
                         bgClass="bg-red-50"
                         colorClass="text-red-600"
                     />
-                    <KPICard
-                        title="Valor Estimado"
-                        value={totalValor > 0 ? formattedValor : "N/A"}
-                        icon={FaDollarSign}
-                        bgClass="bg-amber-50"
-                        colorClass="text-amber-600"
-                    />
+                    <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                        <KPICard
+                            title="Valor Estimado (Activos)"
+                            value={totalValor > 0 ? formattedValor : "N/A"}
+                            icon={FaDollarSign}
+                            bgClass="bg-amber-50"
+                            colorClass="text-amber-600"
+                        />
+                    </div>
                 </div>
 
                 {/* Charts Grid */}
@@ -230,6 +263,37 @@ const MetricsDashboard = () => {
                                         <Cell fill="#10b981" /> {/* Activos */}
                                         <Cell fill="#ef4444" /> {/* Inactivos */}
                                         {otros > 0 && <Cell fill="#9ca3af" />} {/* Otros - Gray */}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Location Distribution (Pie Chart) - NEW */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-2 mb-6">
+                            <FaChartPie className="text-teal-500" />
+                            <h3 className="text-lg font-bold text-gray-800">Oficina vs Terreno</h3>
+                        </div>
+                        <div className="h-72">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={locationData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={90}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {/* Oficina: Teal, Terreno: Orange, Otros: Gray */}
+                                        <Cell fill="#0d9488" />
+                                        <Cell fill="#f97316" />
+                                        <Cell fill="#9ca3af" />
                                     </Pie>
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -340,6 +404,12 @@ const MetricsDashboard = () => {
 
                 </div>
             </div>
+
+            <ValueDetailsModal
+                isOpen={showValueModal}
+                onClose={() => setShowValueModal(false)}
+                data={data}
+            />
         </div>
     );
 };
