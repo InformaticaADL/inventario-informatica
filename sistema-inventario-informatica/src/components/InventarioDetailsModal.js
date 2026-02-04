@@ -151,7 +151,7 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                         {data.correo ? (
                                             data.correo.split(/[\/,]+/).map((email, idx) => (
                                                 <div key={idx} className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm">
-                                                    <span className="text-xs font-medium">{email.trim()}</span>
+                                                    <span className="text-xs font-medium break-all">{email.trim()}</span>
                                                 </div>
                                             ))
                                         ) : (

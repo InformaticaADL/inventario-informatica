@@ -376,7 +376,7 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
                 <div className="flex flex-wrap gap-2">
                     {emails.map((email, idx) => (
                         <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-200">
-                            {email}
+                            <span className="break-all">{email}</span>
                             <button
                                 type="button"
                                 onClick={() => removeEmail(email)}
