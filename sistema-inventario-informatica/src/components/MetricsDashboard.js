@@ -16,7 +16,10 @@ import {
     FaChartPie
 } from 'react-icons/fa';
 import ValueDetailsModal from './ValueDetailsModal';
+import InactiveDetailsModal from './InactiveDetailsModal';
+import ActiveDetailsModal from './ActiveDetailsModal';
 import { useAuth } from '@/hooks/useAuth';
+import { parseCLP } from '@/utils/numberParsers';
 
 // Modern Color Palette
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -56,6 +59,8 @@ const MetricsDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [brandFilter, setBrandFilter] = useState("ACTIVOS"); // ACTIVOS, INACTIVOS, TODOS
     const [showValueModal, setShowValueModal] = useState(false);
+    const [showInactiveModal, setShowInactiveModal] = useState(false);
+    const [showActiveModal, setShowActiveModal] = useState(false);
     const router = useRouter();
     const { user } = useAuth();
 
@@ -95,7 +100,7 @@ const MetricsDashboard = () => {
         // Only count active equipment (robust check)
         if (!item.operativo || item.operativo.trim().toUpperCase() !== 'SI') return acc;
 
-        const val = parseFloat(item.valor_neto) || 0;
+        const val = parseCLP(item.valor_neto);
         return acc + val;
     }, 0);
 
@@ -214,20 +219,24 @@ const MetricsDashboard = () => {
                         bgClass="bg-blue-50"
                         colorClass="text-blue-600"
                     />
-                    <KPICard
-                        title="Equipos Activos"
-                        value={activos}
-                        icon={FaCheckCircle}
-                        bgClass="bg-emerald-50"
-                        colorClass="text-emerald-600"
-                    />
-                    <KPICard
-                        title="Equipos Inactivos"
-                        value={inactivos}
-                        icon={FaTimesCircle}
-                        bgClass="bg-red-50"
-                        colorClass="text-red-600"
-                    />
+                    <div onClick={() => setShowActiveModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                        <KPICard
+                            title="Equipos Activos"
+                            value={activos}
+                            icon={FaCheckCircle}
+                            bgClass="bg-emerald-50"
+                            colorClass="text-emerald-600"
+                        />
+                    </div>
+                    <div onClick={() => setShowInactiveModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                        <KPICard
+                            title="Equipos Inactivos"
+                            value={inactivos}
+                            icon={FaTimesCircle}
+                            bgClass="bg-red-50"
+                            colorClass="text-red-600"
+                        />
+                    </div>
                     <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105">
                         <KPICard
                             title="Valor Estimado (Activos)"
@@ -408,6 +417,18 @@ const MetricsDashboard = () => {
             <ValueDetailsModal
                 isOpen={showValueModal}
                 onClose={() => setShowValueModal(false)}
+                data={data}
+            />
+
+            <InactiveDetailsModal
+                isOpen={showInactiveModal}
+                onClose={() => setShowInactiveModal(false)}
+                data={data}
+            />
+
+            <ActiveDetailsModal
+                isOpen={showActiveModal}
+                onClose={() => setShowActiveModal(false)}
                 data={data}
             />
         </div>

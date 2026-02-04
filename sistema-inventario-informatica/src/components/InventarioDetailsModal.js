@@ -17,6 +17,7 @@ import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
 import { formatCLP } from "@/utils/formatters";
+import { parseCLP } from "@/utils/numberParsers";
 
 const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
     const parseDate = (dateVal) => {
@@ -57,8 +58,10 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
         return "bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs border border-gray-200";
     };
 
+
+
     // Helper to format currency or simple numbers if needed
-    const formatValue = (val) => formatCLP(val);
+    const formatValue = (val) => formatCLP(parseCLP(val));
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm overflow-y-auto p-4 md:p-8">
