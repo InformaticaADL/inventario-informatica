@@ -2,7 +2,7 @@
 
 import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop } from "react-icons/fa";
 
-const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue }) => {
+const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue, secondaryFilter }) => {
     if (!isOpen || !data) return null;
 
     // Filter Logic
@@ -39,7 +39,16 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             if (brand.toUpperCase() === 'HP') brand = 'HP';
             if (brand.toUpperCase() === 'LENOVO') brand = 'Lenovo';
 
-            return brand === filterValue;
+            if (brand !== filterValue) return false;
+
+            // Apply secondary filter (Status) if present
+            if (secondaryFilter) {
+                const op = item.operativo ? item.operativo.trim().toUpperCase() : 'NO';
+                if (secondaryFilter === 'ACTIVOS' && op !== 'SI') return false;
+                if (secondaryFilter === 'INACTIVOS' && op !== 'NO') return false;
+            }
+
+            return true;
         }
 
         return false;

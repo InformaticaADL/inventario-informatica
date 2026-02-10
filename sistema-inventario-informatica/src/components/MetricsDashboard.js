@@ -422,7 +422,8 @@ const MetricsDashboard = () => {
                                                 setDetailModalConfig({
                                                     title: 'Detalle Marca',
                                                     filterType: 'BRAND',
-                                                    filterValue: data.name
+                                                    filterValue: data.name,
+                                                    secondaryFilter: brandFilter // Pass the current status filter (ACTIVOS, INACTIVOS, TODOS)
                                                 });
                                                 setShowDetailModal(true);
                                             }
@@ -556,6 +557,7 @@ const MetricsDashboard = () => {
                 title={detailModalConfig.title}
                 filterType={detailModalConfig.filterType}
                 filterValue={detailModalConfig.filterValue}
+                secondaryFilter={detailModalConfig.secondaryFilter}
             />
         </div>
     );
