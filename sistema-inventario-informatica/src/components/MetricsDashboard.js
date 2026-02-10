@@ -12,12 +12,16 @@ import {
     FaCheckCircle,
     FaTimesCircle,
     FaDollarSign,
-    Faserver,
-    FaChartPie
+    FaServer,
+    FaChartPie,
+    FaFileExcel
 } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 import ValueDetailsModal from './ValueDetailsModal';
 import InactiveDetailsModal from './InactiveDetailsModal';
 import ActiveDetailsModal from './ActiveDetailsModal';
+import OfficeDetailsModal from './OfficeDetailsModal';
+import MetricsDetailModal from './MetricsDetailModal';
 import { useAuth } from '@/hooks/useAuth';
 import { parseCLP } from '@/utils/numberParsers';
 
@@ -61,6 +65,13 @@ const MetricsDashboard = () => {
     const [showValueModal, setShowValueModal] = useState(false);
     const [showInactiveModal, setShowInactiveModal] = useState(false);
     const [showActiveModal, setShowActiveModal] = useState(false);
+    const [showOfficeModal, setShowOfficeModal] = useState(false);
+    const [selectedOfficeVersion, setSelectedOfficeVersion] = useState(null);
+
+    // Generic Modal State
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [detailModalConfig, setDetailModalConfig] = useState({ title: '', filterType: '', filterValue: '' });
+
     const router = useRouter();
     const { user } = useAuth();
 
@@ -97,9 +108,7 @@ const MetricsDashboard = () => {
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
     const totalValor = data.reduce((acc, item) => {
-        // Only count active equipment (robust check)
-        if (!item.operativo || item.operativo.trim().toUpperCase() !== 'SI') return acc;
-
+        // Include all equipment regardless of status
         const val = parseCLP(item.valor_neto);
         return acc + val;
     }, 0);
@@ -139,16 +148,18 @@ const MetricsDashboard = () => {
 
     // 3. Office Versions
     const officeCount = data.reduce((acc, item) => {
-        let version = 'Sin Info';
-        if (item.office) {
+        let version = 'Sin Office'; // Default for null/undefined/empty
+
+        if (item.office && item.office.trim() !== '') {
             const lower = item.office.toLowerCase();
             if (lower.includes('libre')) version = 'LibreOffice';
             else if (lower.includes('365')) version = 'Office 365';
             else if (lower.includes('2019')) version = 'Office 2019';
             else if (lower.includes('2016')) version = 'Office 2016';
             else if (lower.includes('2013')) version = 'Office 2013';
-            else version = 'Otro Office';
+            // Else remains 'Sin Office' -> Catches "Otro Office" cases
         }
+
         acc[version] = (acc[version] || 0) + 1;
         return acc;
     }, {});
@@ -183,7 +194,13 @@ const MetricsDashboard = () => {
     };
 
     const brandCount = getFilteredBrandData().reduce((acc, item) => {
-        const brand = item.marca || 'Sin Marca';
+        let brand = item.marca ? item.marca.trim() : 'Sin Marca';
+
+        // Normalize Brands to avoid duplicates
+        if (brand.toUpperCase() === 'DELL') brand = 'Dell';
+        if (brand.toUpperCase() === 'HP') brand = 'HP';
+        if (brand.toUpperCase() === 'LENOVO') brand = 'Lenovo';
+
         acc[brand] = (acc[brand] || 0) + 1;
         return acc;
     }, {});
@@ -192,6 +209,28 @@ const MetricsDashboard = () => {
         .map(key => ({ name: key, value: brandCount[key] }))
         .sort((a, b) => b.value - a.value);
 
+
+
+    // 6. Excel Export Logic (Replicated from OfficeReportTable)
+    const handleExportOffice = () => {
+        try {
+            const dataToExport = data.map(item => ({
+                "Nombre Equipo": item.nombre_equipo,
+                "Sistema Operativo": item.sistema_operativo,
+                "Versión Office": item.office,
+                "Unidad": item.unidad
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Office");
+
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Reporte_Office_${date}.xlsx`);
+        } catch (error) {
+            console.error("Error exporting excel:", error);
+        }
+    };
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -268,10 +307,21 @@ const MetricsDashboard = () => {
                                         outerRadius={90}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Estado Operativo',
+                                                    filterType: 'STATUS',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
                                     >
-                                        <Cell fill="#10b981" /> {/* Activos */}
-                                        <Cell fill="#ef4444" /> {/* Inactivos */}
-                                        {otros > 0 && <Cell fill="#9ca3af" />} {/* Otros - Gray */}
+                                        <Cell fill="#10b981" cursor="pointer" /> {/* Activos */}
+                                        <Cell fill="#ef4444" cursor="pointer" /> {/* Inactivos */}
+                                        {otros > 0 && <Cell fill="#9ca3af" cursor="pointer" />} {/* Otros - Gray */}
                                     </Pie>
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -298,11 +348,22 @@ const MetricsDashboard = () => {
                                         paddingAngle={5}
                                         dataKey="value"
                                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Ubicación',
+                                                    filterType: 'LOCATION',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
                                     >
                                         {/* Oficina: Teal, Terreno: Orange, Otros: Gray */}
-                                        <Cell fill="#0d9488" />
-                                        <Cell fill="#f97316" />
-                                        <Cell fill="#9ca3af" />
+                                        <Cell fill="#0d9488" cursor="pointer" />
+                                        <Cell fill="#f97316" cursor="pointer" />
+                                        <Cell fill="#9ca3af" cursor="pointer" />
                                     </Pie>
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -341,32 +402,53 @@ const MetricsDashboard = () => {
                             </div>
                         </div>
                         <div className="h-72">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={brandData}
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={90}
-                                        fill="#8884d8"
-                                        dataKey="value"
-                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                    >
-                                        {brandData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart
+                                    data={brandData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12, fill: '#6b7280' }} />
                                     <Tooltip content={<CustomTooltip />} />
-                                </PieChart>
+                                    <Bar
+                                        dataKey="value"
+                                        fill="#6366f1"
+                                        radius={[0, 4, 4, 0]}
+                                        name="Cantidad"
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Marca',
+                                                    filterType: 'BRAND',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    />
+                                </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
                     {/* Office Distribution (Vertical Bar) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6">
-                            <FaDesktop className="text-sky-500" />
-                            <h3 className="text-lg font-bold text-gray-800">Versiones de Office</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaDesktop className="text-sky-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Versiones de Office</h3>
+                            </div>
+                            <button
+                                onClick={handleExportOffice}
+                                className="text-sm bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-md flex items-center gap-1 transition-colors border border-green-200"
+                                title="Exportar Reporte Office"
+                            >
+                                <FaFileExcel />
+                                <span>Exportar</span>
+                            </button>
                         </div>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
@@ -375,9 +457,21 @@ const MetricsDashboard = () => {
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 13, fill: '#4b5563' }} />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="value" fill="#0ea5e9" radius={[0, 4, 4, 0]} name="Cantidad">
+                                    <Bar
+                                        dataKey="value"
+                                        fill="#0ea5e9"
+                                        radius={[0, 4, 4, 0]}
+                                        name="Cantidad"
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setSelectedOfficeVersion(data.name);
+                                                setShowOfficeModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    >
                                         {officeData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -405,7 +499,23 @@ const MetricsDashboard = () => {
                                     />
                                     <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} allowDecimals={false} />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="value" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Cantidad" />
+                                    <Bar
+                                        dataKey="value"
+                                        fill="#f59e0b"
+                                        radius={[4, 4, 0, 0]}
+                                        name="Cantidad"
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Modelo',
+                                                    filterType: 'MODEL',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -430,6 +540,22 @@ const MetricsDashboard = () => {
                 isOpen={showActiveModal}
                 onClose={() => setShowActiveModal(false)}
                 data={data}
+            />
+
+            <OfficeDetailsModal
+                isOpen={showOfficeModal}
+                onClose={() => setShowOfficeModal(false)}
+                data={data}
+                filterVersion={selectedOfficeVersion}
+            />
+
+            <MetricsDetailModal
+                isOpen={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                data={data}
+                title={detailModalConfig.title}
+                filterType={detailModalConfig.filterType}
+                filterValue={detailModalConfig.filterValue}
             />
         </div>
     );

@@ -6,8 +6,8 @@ const AutoLogout = () => {
     const { logout, user } = useAuth();
     const timerRef = useRef(null);
 
-    // 3 minutes in milliseconds
-    const INACTIVITY_LIMIT = 3 * 60 * 1000;
+    // 10 minutes in milliseconds
+    const INACTIVITY_LIMIT = 10 * 60 * 1000;
 
     const resetTimer = () => {
         if (timerRef.current) clearTimeout(timerRef.current);

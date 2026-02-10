@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle } from "react-icons/fa";
+import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle, FaTrash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
@@ -155,6 +155,22 @@ const InventarioTable = () => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Error al actualizar estado");
+        }
+    };
+
+    const handleDelete = async (item, e) => {
+        e.stopPropagation();
+
+        if (!window.confirm("¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.")) {
+            return;
+        }
+
+        try {
+            await api.delete(`/inventario/${item.id_inventario}`);
+            setData(prev => prev.filter(i => i.id_inventario !== item.id_inventario));
+        } catch (error) {
+            console.error("Error deleting item:", error);
+            alert("Error al eliminar el equipo");
         }
     };
 
@@ -350,12 +366,22 @@ const InventarioTable = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                     {user?.seccion === 'INF' && (
-                                        <button
-                                            onClick={(e) => handleEdit(item, e)}
-                                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-2 rounded-md transition-colors hover:bg-white z-10"
-                                        >
-                                            <FaEdit />
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={(e) => handleEdit(item, e)}
+                                                className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-2 rounded-md transition-colors hover:bg-white z-10"
+                                                title="Editar"
+                                            >
+                                                <FaEdit />
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleDelete(item, e)}
+                                                className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-md transition-colors hover:bg-white z-10"
+                                                title="Eliminar"
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                        </>
                                     )}
                                 </td>
                             </tr>

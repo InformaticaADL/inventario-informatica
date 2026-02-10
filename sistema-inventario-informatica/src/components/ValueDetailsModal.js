@@ -8,9 +8,9 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
 
     // Filter using the same logic as the dashboard (case-insensitive, trimmed)
-    const activeItems = data.filter(item => item.operativo && item.operativo.trim().toUpperCase() === 'SI');
+    const allItems = data; // Show all items
 
-    const totalValue = activeItems.reduce((acc, item) => {
+    const totalValue = allItems.reduce((acc, item) => {
         const val = parseCLP(item.valor_neto);
         return acc + val;
     }, 0);
@@ -30,7 +30,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                                 Detalle Valor Estimado
                             </h3>
                             <p className="text-sm text-gray-500 mt-1">
-                                {activeItems.length} equipos activos contabilizados
+                                {allItems.length} equipos contabilizados
                             </p>
                         </div>
                     </div>
@@ -54,7 +54,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {activeItems.map((item, index) => (
+                            {allItems.map((item, index) => (
                                 <tr key={item.id_inventario} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
                                         {item.id_inventario}
@@ -86,7 +86,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                 {/* Footer / Total */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-between items-center">
                     <div className="text-sm text-gray-500">
-                        * Solo se incluyen equipos marcados como operativos (SI).
+                        * Se incluyen todos los equipos valorizados.
                     </div>
                     <div className="flex items-center gap-4">
                         <span className="text-gray-600 uppercase text-xs font-bold tracking-wider">Total Estimado:</span>
