@@ -15,6 +15,7 @@ db.Ram = require('./Ram')(sequelize, DataTypes);
 db.Almacenamiento = require('./Almacenamiento')(sequelize, DataTypes);
 db.So = require('./So')(sequelize, DataTypes);
 db.Office = require('./Office')(sequelize, DataTypes);
+db.CorreosADL = require('./CorreosADL')(sequelize, DataTypes);
 
 // Ejecutar asociaciones
 Object.values(db).forEach((model) => {

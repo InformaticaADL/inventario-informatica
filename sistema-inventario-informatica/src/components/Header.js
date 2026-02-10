@@ -33,6 +33,9 @@ const Header = () => {
                         <Link href="/reportes" className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm font-medium text-sm block">
                             Reporte
                         </Link>
+                        <Link href="/dashboard/correos-adl" className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium text-sm block">
+                            Correos ADL
+                        </Link>
                         <Link href="/dashboard/metrics" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm">
                             Ver Métricas
                         </Link>

@@ -84,6 +84,9 @@ app.use('/api/so', soRoutes);
 const officeRoutes = require('./routes/officeRoutes');
 app.use('/api/office', officeRoutes);
 
+const correosADLRoutes = require('./routes/correosADLRoutes');
+app.use('/api/correos-adl', correosADLRoutes);
+
 
 
 const IP = '0.0.0.0';

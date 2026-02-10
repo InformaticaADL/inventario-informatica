@@ -110,7 +110,15 @@ const OfficeReportTable = () => {
                         {filteredData.map((item) => (
                             <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nombre_equipo}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sistema_operativo}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.sistema_operativo.toLowerCase().includes("linux") || item.sistema_operativo.toLowerCase().includes("ubuntu") ? "bg-orange-100 text-orange-800" :
+                                        item.sistema_operativo.toLowerCase().includes("windows 11") ? "bg-indigo-100 text-indigo-800" :
+                                            item.sistema_operativo.toLowerCase().includes("windows") ? "bg-blue-100 text-blue-800" :
+                                                "bg-gray-100 text-gray-800"
+                                        }`}>
+                                        {item.sistema_operativo}
+                                    </span>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.office.toLowerCase().includes("libre") ? "bg-orange-100 text-orange-800" :
                                         item.office.toLowerCase().includes("office") ? "bg-blue-100 text-blue-800" :
