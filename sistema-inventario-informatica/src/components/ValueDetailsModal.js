@@ -85,8 +85,8 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
 
                 {/* Footer / Total */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-between items-center">
-                    <div className="text-sm text-gray-500">
-                        * Se incluyen todos los equipos valorizados.
+                    <div className="text-sm text-gray-500 font-medium">
+                        * La suma incluye equipos activos e inactivos.
                     </div>
                     <div className="flex items-center gap-4">
                         <span className="text-gray-600 uppercase text-xs font-bold tracking-wider">Total Estimado:</span>

@@ -169,6 +169,20 @@ const MetricsDashboard = () => {
         value: officeCount[key]
     })).sort((a, b) => b.value - a.value);
 
+    // 3.5 Windows License Distribution
+    const licenseCount = data.reduce((acc, item) => {
+        let license = item.licencia_windows ? item.licencia_windows.trim() : 'Sin Información';
+        if (license === '') license = 'Sin Información';
+
+        acc[license] = (acc[license] || 0) + 1;
+        return acc;
+    }, {});
+
+    const licenseData = Object.keys(licenseCount).map(key => ({
+        name: key,
+        value: licenseCount[key]
+    })).sort((a, b) => b.value - a.value);
+
     // 4. Top Models (Top 10)
     const modelCount = data.reduce((acc, item) => {
         const model = item.modelo || 'Sin Modelo';
@@ -278,7 +292,7 @@ const MetricsDashboard = () => {
                     </div>
                     <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105">
                         <KPICard
-                            title="Valor Estimado (Activos)"
+                            title="Valor Estimado Total"
                             value={totalValor > 0 ? formattedValor : "N/A"}
                             icon={FaDollarSign}
                             bgClass="bg-amber-50"
@@ -290,11 +304,61 @@ const MetricsDashboard = () => {
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
 
+                    {/* Windows License Distribution (Donut Chart) - NEW */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaDesktop className="text-blue-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Licencias Windows</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
+                        </div>
+                        <div className="h-72">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={licenseData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={90}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Licencia',
+                                                    filterType: 'LICENSE',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    >
+                                        {licenseData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
                     {/* Operatividad (Donut Chart) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6">
-                            <FaChartPie className="text-purple-500" />
-                            <h3 className="text-lg font-bold text-gray-800">Estado Operativo</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaChartPie className="text-purple-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Estado Operativo</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
                         </div>
                         <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
@@ -332,9 +396,14 @@ const MetricsDashboard = () => {
 
                     {/* Location Distribution (Pie Chart) - NEW */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6">
-                            <FaChartPie className="text-teal-500" />
-                            <h3 className="text-lg font-bold text-gray-800">Oficina vs Terreno</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaChartPie className="text-teal-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Oficina vs Terreno</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
                         </div>
                         <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
@@ -379,7 +448,10 @@ const MetricsDashboard = () => {
                                 <FaChartPie className="text-indigo-500" />
                                 <h3 className="text-lg font-bold text-gray-800">Distribución por Marca</h3>
                             </div>
-                            <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    Total: {getFilteredBrandData().length}
+                                </span>
                                 <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
                                     {['ACTIVOS', 'INACTIVOS', 'TODOS'].filter(f => {
                                         if (f === 'TODOS') return true;
@@ -442,14 +514,19 @@ const MetricsDashboard = () => {
                                 <FaDesktop className="text-sky-500" />
                                 <h3 className="text-lg font-bold text-gray-800">Versiones de Office</h3>
                             </div>
-                            <button
-                                onClick={handleExportOffice}
-                                className="text-sm bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-md flex items-center gap-1 transition-colors border border-green-200"
-                                title="Exportar Reporte Office"
-                            >
-                                <FaFileExcel />
-                                <span>Exportar</span>
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    Total: {totalEquipos}
+                                </span>
+                                <button
+                                    onClick={handleExportOffice}
+                                    className="text-sm bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-md flex items-center gap-1 transition-colors border border-green-200"
+                                    title="Exportar Reporte Office"
+                                >
+                                    <FaFileExcel />
+                                    <span>Exportar</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
@@ -480,11 +557,18 @@ const MetricsDashboard = () => {
                         </div>
                     </div>
 
+
+
                     {/* Top Models (Bar Chart) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6">
-                            <FaDesktop className="text-orange-500" />
-                            <h3 className="text-lg font-bold text-gray-800">Top 10 Modelos de Equipos</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaDesktop className="text-orange-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Top 10 Modelos de Equipos</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
                         </div>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">

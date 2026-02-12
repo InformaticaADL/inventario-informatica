@@ -16,19 +16,31 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [sorting, setSorting] = useState([]);
     const [habilitadoFilter, setHabilitadoFilter] = useState("ALL"); // ALL, S, N
+    const [sedeFilter, setSedeFilter] = useState("ALL");
 
     // Details Modal State
     const [viewItem, setViewItem] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-    // Filter data based on habilitado status
+    // Get unique sedes for filter
+    const uniqueSedes = useMemo(() => {
+        const sedes = data.map(item => item.sede).filter(Boolean);
+        return [...new Set(sedes)].sort();
+    }, [data]);
+
+    // Filter data based on habilitado status and sede
     const filteredData = useMemo(() => {
-        if (habilitadoFilter === 'ALL') return data;
         return data.filter(item => {
+            // Filter by Habilitado
             const status = item.habilitado ? String(item.habilitado).toUpperCase() : 'N';
-            return status === habilitadoFilter;
+            const matchesHabilitado = habilitadoFilter === 'ALL' || status === habilitadoFilter;
+
+            // Filter by Sede
+            const matchesSede = sedeFilter === 'ALL' || item.sede === sedeFilter;
+
+            return matchesHabilitado && matchesSede;
         });
-    }, [data, habilitadoFilter]);
+    }, [data, habilitadoFilter, sedeFilter]);
 
     const columns = useMemo(() => [
         {
@@ -103,8 +115,18 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
     });
 
     const exportToExcel = () => {
+        const dataToExport = filteredData.map(item => ({
+            "Sede": item.sede,
+            "Área": item.area,
+            "Unidad": item.unidad,
+            "Nombre": item.nombre,
+            "Email": item.email,
+            "Empresa": item.empresa,
+            "Habilitado": item.habilitado === 'S' ? 'Si' : 'No'
+        }));
+
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(filteredData);
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
         XLSX.utils.book_append_sheet(wb, ws, "CorreosADL");
         XLSX.writeFile(wb, "CorreosADL.xlsx");
     };
@@ -118,20 +140,34 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div className="flex flex-col gap-4 w-full md:w-auto">
-                    {/* Filter Buttons */}
-                    <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
-                        {['ALL', 'S', 'N'].map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => setHabilitadoFilter(status)}
-                                className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${habilitadoFilter === status
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                {status === 'ALL' ? 'Todos' : status === 'S' ? 'Activos' : 'Inactivos'}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap gap-4 items-center">
+                        {/* Sede Filter */}
+                        <select
+                            value={sedeFilter}
+                            onChange={(e) => setSedeFilter(e.target.value)}
+                            className="px-4 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
+                        >
+                            <option value="ALL">Todas las sedes</option>
+                            {uniqueSedes.map(sede => (
+                                <option key={sede} value={sede}>{sede}</option>
+                            ))}
+                        </select>
+
+                        {/* Filter Buttons */}
+                        <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+                            {['ALL', 'S', 'N'].map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => setHabilitadoFilter(status)}
+                                    className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${habilitadoFilter === status
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    {status === 'ALL' ? 'Todos' : status === 'S' ? 'Activos' : 'Inactivos'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="relative w-full md:w-96">

@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop } from "react-icons/fa";
+import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop, FaWindows } from "react-icons/fa";
 
 const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue, secondaryFilter }) => {
     if (!isOpen || !data) return null;
@@ -51,6 +51,12 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             return true;
         }
 
+        if (filterType === 'LICENSE') {
+            let license = item.licencia_windows ? item.licencia_windows.trim() : 'Sin Información';
+            if (license === '') license = 'Sin Información';
+            return license === filterValue;
+        }
+
         return false;
     });
 
@@ -59,7 +65,8 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'STATUS') return <FaCheckCircle size={24} />;
         if (filterType === 'LOCATION') return <FaMapMarkerAlt size={24} />;
         if (filterType === 'MODEL') return <FaDesktop size={24} />;
-        if (filterType === 'BRAND') return <FaDesktop size={24} />; // Reuse desktop or find brand icon
+        if (filterType === 'BRAND') return <FaDesktop size={24} />;
+        if (filterType === 'LICENSE') return <FaWindows size={24} />;
         return <FaList size={24} />;
     };
 
@@ -69,6 +76,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'LOCATION') return "bg-teal-100 text-teal-600 from-teal-50";
         if (filterType === 'MODEL') return "bg-orange-100 text-orange-600 from-orange-50";
         if (filterType === 'BRAND') return "bg-indigo-100 text-indigo-600 from-indigo-50";
+        if (filterType === 'LICENSE') return "bg-cyan-100 text-cyan-600 from-cyan-50";
         return "bg-blue-100 text-blue-600 from-blue-50";
     };
 
