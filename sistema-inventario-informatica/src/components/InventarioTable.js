@@ -20,6 +20,23 @@ const InventarioTable = () => {
     const [soFilter, setSoFilter] = useState("ALL");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [currentPage, setCurrentPage] = useState(1);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    // Persistence Logic: Restore page on mount
+    useEffect(() => {
+        const savedPage = sessionStorage.getItem("inventarioPage");
+        if (savedPage) {
+            setCurrentPage(parseInt(savedPage, 10));
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Persistence Logic: Save page on change
+    useEffect(() => {
+        if (isInitialized) {
+            sessionStorage.setItem("inventarioPage", currentPage.toString());
+        }
+    }, [currentPage, isInitialized]);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,7 +129,10 @@ const InventarioTable = () => {
     // Final filtered data for the table (Apply ALL filters & Sorting)
     const baseFilteredData = applyFilters();
     const filteredData = [...baseFilteredData].sort((a, b) => {
-        if (!sortConfig.key) return 0;
+        if (!sortConfig.key) {
+            // Default sort: ID ascending to keep position stable
+            return (a.id_inventario || 0) - (b.id_inventario || 0);
+        }
         const key = sortConfig.key;
         if (!a[key]) return 1;
         if (!b[key]) return -1;
@@ -209,6 +229,21 @@ const InventarioTable = () => {
         if (lower.includes("licenciado")) return "bg-green-100 text-green-800";
         if (lower.includes("baja")) return "bg-red-100 text-red-800";
         return "bg-blue-100 text-blue-800";
+    };
+
+    const formatResponsible = (text) => {
+        if (!text) return "-";
+        const separators = [" -> ", " - ", " / ", ", "];
+        for (const sep of separators) {
+            if (text.includes(sep)) {
+                const parts = text.split(sep);
+                return "... " + parts[parts.length - 1];
+            }
+        }
+        if (text.length > 25) {
+            return "..." + text.slice(-20);
+        }
+        return text;
     };
 
     if (loading) return <div className="text-center p-10">Cargando inventario...</div>;
@@ -359,8 +394,18 @@ const InventarioTable = () => {
                                         {item.estado || 'N/A'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nombre_responsable}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nombre_usuario}</td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                                    title={item.nombre_responsable}
+                                >
+                                    {formatResponsible(item.nombre_responsable)}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                    title={item.nombre_usuario}
+                                >
+                                    {formatResponsible(item.nombre_usuario)}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.ubicacion}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.modelo}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>

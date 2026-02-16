@@ -89,7 +89,7 @@ const InactiveDetailsModal = ({ isOpen, onClose, data }) => {
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-between items-center">
                     <div className="text-sm text-gray-500">
-                        * Estos equipos no se consideran en el cálculo de operatividad activa.
+                        * Listado de equipos actualmente inactivos.
                     </div>
                     <div className="flex items-center gap-4">
                         <button
