@@ -14,7 +14,8 @@ import {
     FaDollarSign,
     FaServer,
     FaChartPie,
-    FaFileExcel
+    FaFileExcel,
+    FaBuilding
 } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import ValueDetailsModal from './ValueDetailsModal';
@@ -194,6 +195,21 @@ const MetricsDashboard = () => {
         .map(key => ({ name: key, value: modelCount[key] }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 10);
+
+    // 4.5 Unit Distribution
+    const unitCount = data.reduce((acc, item) => {
+        let unit = item.unidad ? item.unidad.trim() : 'Sin Unidad';
+        if (unit === '') unit = 'Sin Unidad';
+        // Normalize
+        unit = unit.toUpperCase();
+
+        acc[unit] = (acc[unit] || 0) + 1;
+        return acc;
+    }, {});
+
+    const unitData = Object.keys(unitCount)
+        .map(key => ({ name: key, value: unitCount[key] }))
+        .sort((a, b) => b.value - a.value);
 
     // 5. Brands Logic with Filter
 
@@ -601,6 +617,61 @@ const MetricsDashboard = () => {
                                         }}
                                         cursor="pointer"
                                     />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Unit Distribution (Bar Chart) - NEW */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaBuilding className="text-gray-600" />
+                                <h3 className="text-lg font-bold text-gray-800">Distribución por Unidad</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
+                        </div>
+                        <div className="h-96">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={unitData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
+                                    <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        width={180}
+                                        tick={{ fontSize: 11, fill: '#4b5563' }}
+                                        interval={0}
+                                    />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Bar
+                                        dataKey="value"
+                                        fill="#6366f1" // Indigo
+                                        radius={[0, 4, 4, 0]}
+                                        name="Cantidad"
+                                        barSize={20}
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Unidad',
+                                                    filterType: 'UNIT',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    >
+                                        {unitData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
+                                        ))}
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

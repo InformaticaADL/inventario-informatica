@@ -98,7 +98,7 @@ const InventarioTable = () => {
 
         // Seccion Filter
         if (seccionFilter !== "ALL" && excludeKey !== "seccion") {
-            filtered = filtered.filter((item) => item.unidad === seccionFilter);
+            filtered = filtered.filter((item) => item.unidad && item.unidad.trim().toUpperCase() === seccionFilter);
         }
 
         // SO Filter
@@ -116,7 +116,7 @@ const InventarioTable = () => {
 
     // 2. Available Sections: Filtered by Everything EXCEPT Section
     const availableSeccionesData = applyFilters("seccion");
-    const uniqueSecciones = [...new Set(availableSeccionesData.map(item => item.unidad).filter(Boolean))].sort();
+    const uniqueSecciones = [...new Set(availableSeccionesData.map(item => item.unidad ? item.unidad.trim().toUpperCase() : "").filter(Boolean))].sort();
 
     // 3. Available SOs: Filtered by Everything EXCEPT SO
     const availableSosData = applyFilters("so");

@@ -144,6 +144,7 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                 <DetailItem label="Dirección IP" value={data.ip} isCode />
                                 <DetailItem label="AnyDesk ID" value={data.anydesk} isCode />
+                                <DetailItem label="Código ADL" value={data.codigo_adl} isCode />
                                 <DetailItem label="Número de Serie" value={data.serie} isCode />
                                 <div className="flex flex-col">
                                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Correos Asociados</span>

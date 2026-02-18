@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop, FaWindows } from "react-icons/fa";
+import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding } from "react-icons/fa";
 
 const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue, secondaryFilter }) => {
     if (!isOpen || !data) return null;
@@ -57,6 +57,11 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             return license === filterValue;
         }
 
+        if (filterType === 'UNIT') {
+            const unit = item.unidad ? item.unidad.trim().toUpperCase() : 'SIN UNIDAD';
+            return unit === filterValue;
+        }
+
         return false;
     });
 
@@ -67,6 +72,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'MODEL') return <FaDesktop size={24} />;
         if (filterType === 'BRAND') return <FaDesktop size={24} />;
         if (filterType === 'LICENSE') return <FaWindows size={24} />;
+        if (filterType === 'UNIT') return <FaBuilding size={24} />;
         return <FaList size={24} />;
     };
 
@@ -77,6 +83,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'MODEL') return "bg-orange-100 text-orange-600 from-orange-50";
         if (filterType === 'BRAND') return "bg-indigo-100 text-indigo-600 from-indigo-50";
         if (filterType === 'LICENSE') return "bg-cyan-100 text-cyan-600 from-cyan-50";
+        if (filterType === 'UNIT') return "bg-purple-100 text-purple-600 from-purple-50";
         return "bg-blue-100 text-blue-600 from-blue-50";
     };
 
@@ -114,7 +121,9 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                             <tr>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">ID</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Equipo</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Sede</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Ubicación / Usuario</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Responsable</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Estado</th>
                             </tr>
                         </thead>
@@ -135,9 +144,15 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                             </div>
                                         </div>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {item.sede || "Sin Sede"}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{item.nombre_usuario || "Sin usuario"}</div>
                                         <div className="text-xs text-gray-500">{item.ubicacion || "Sin ubicación"}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {item.nombre_responsable || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(item.operativo === 'SI') ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
@@ -149,7 +164,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                             ))}
                             {filteredItems.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                                         No se encontraron equipos para esta selección.
                                     </td>
                                 </tr>
