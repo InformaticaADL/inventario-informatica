@@ -4,6 +4,7 @@ import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle, FaTras
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
+import { toast } from 'react-hot-toast';
 
 import InventarioModal from "./InventarioModal";
 import InventarioDetailsModal from "./InventarioDetailsModal";
@@ -174,7 +175,7 @@ const InventarioTable = () => {
             setData(prev => prev.map(i => i.id_inventario === item.id_inventario ? updatedItem : i));
         } catch (error) {
             console.error("Error updating status:", error);
-            alert("Error al actualizar estado");
+            toast.error("Error al actualizar estado");
         }
     };
 
@@ -188,9 +189,10 @@ const InventarioTable = () => {
         try {
             await api.delete(`/inventario/${item.id_inventario}`);
             setData(prev => prev.filter(i => i.id_inventario !== item.id_inventario));
+            toast.success("Equipo eliminado correctamente");
         } catch (error) {
             console.error("Error deleting item:", error);
-            alert("Error al eliminar el equipo");
+            toast.error("Error al eliminar el equipo");
         }
     };
 
@@ -204,16 +206,18 @@ const InventarioTable = () => {
             if (selectedItem) {
                 // Update existing
                 await api.put(`/inventario/${selectedItem.id_inventario}`, formData);
+                toast.success("Inventario actualizado correctamente");
             } else {
                 // Create new (Not implemented trigger yet, but ready logic)
                 await api.post("/inventario", formData);
+                toast.success("Equipo creado correctamente");
             }
             setIsModalOpen(false);
             setSelectedItem(null);
             fetchData(); // Reload data
         } catch (error) {
             console.error("Error saving data:", error);
-            alert("Error al guardar los cambios");
+            toast.error("Error al guardar los cambios");
         }
     };
 

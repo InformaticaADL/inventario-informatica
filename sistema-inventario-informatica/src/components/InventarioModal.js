@@ -15,6 +15,7 @@ import {
 import api from "@/api/apiConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { toast } from 'react-hot-toast';
 dayjs.extend(utc);
 
 const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
@@ -134,8 +135,51 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const validateForm = () => {
+        // Required fields
+        if (!formData.nombre_equipo?.trim()) {
+            toast.error('El nombre del equipo es obligatorio');
+            return false;
+        }
+        if (!formData.tipo_equipo) {
+            toast.error('El tipo de equipo es obligatorio');
+            return false;
+        }
+        if (!formData.marca) {
+            toast.error('La marca es obligatoria');
+            return false;
+        }
+        if (!formData.sede) {
+            toast.error('La sede es obligatoria');
+            return false;
+        }
+        if (!formData.unidad) {
+            toast.error('La unidad/sección es obligatoria');
+            return false;
+        }
+        if (!formData.ubicacion) {
+            toast.error('La ubicación física es obligatoria');
+            return false;
+        }
+
+        // Validate emails if any exist (check internal state of EmailTagsInput might be tricky, 
+        // but we can check the string value against regex here too for safety)
+        if (formData.correo) {
+            const emails = formData.correo.split(/[\/,]+/).map(e => e.trim()).filter(Boolean);
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const invalidEmails = emails.filter(email => !emailRegex.test(email));
+            if (invalidEmails.length > 0) {
+                toast.error(`Correos inválidos: ${invalidEmails.join(', ')}`);
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!validateForm()) return;
         onSubmit(formData);
     };
 
@@ -168,7 +212,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </div>
 
                 {/* Form Body */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 bg-white scrollbar-thin scrollbar-thumb-gray-200">
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 bg-white scrollbar-thin scrollbar-thumb-gray-200" noValidate>
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                         {/* Left Column */}
@@ -331,7 +375,6 @@ const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey
 
 const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
     const [inputValue, setInputValue] = useState("");
-    const [error, setError] = useState(null);
 
     // Initial emails from value string (split by / or ,)
     const emails = value ? value.split(/[\/,]+/).map(e => e.trim()).filter(Boolean) : [];
@@ -349,7 +392,7 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
 
         // Simple email regex validation
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError("Correo inválido");
+            toast.error("Correo inválido");
             return;
         }
 
@@ -361,7 +404,6 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
         const newEmails = [...emails, email];
         onChange({ target: { name: 'correo', value: newEmails.join(' / ') } });
         setInputValue("");
-        setError(null);
     };
 
     const removeEmail = (emailToRemove) => {
@@ -389,7 +431,7 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
                     <input
                         type="text"
                         value={inputValue}
-                        onChange={(e) => { setInputValue(e.target.value); setError(null); }}
+                        onChange={(e) => { setInputValue(e.target.value); }}
                         onKeyDown={handleKeyDown}
                         onBlur={addEmail}
                         placeholder={emails.length === 0 ? "ingrese.correo@ejemplo.com" : ""}
@@ -397,7 +439,6 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
                     />
                 </div>
             </div>
-            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>
     );
 };

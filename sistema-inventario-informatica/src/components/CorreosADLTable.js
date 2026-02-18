@@ -62,6 +62,19 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
         {
             accessorKey: 'email',
             header: 'Email',
+            cell: ({ getValue }) => {
+                const val = getValue();
+                if (!val) return null;
+                return (
+                    <div className="flex flex-col gap-1">
+                        {val.split(/[\/,]+/).map((email, idx) => (
+                            <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs w-fit">
+                                {email.trim()}
+                            </span>
+                        ))}
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'empresa',

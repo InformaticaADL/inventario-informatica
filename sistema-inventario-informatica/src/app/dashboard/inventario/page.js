@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import InventarioTable from '@/components/InventarioTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -31,6 +32,7 @@ export default function InventarioPage() {
 
     return (
         <div className="flex flex-col h-full">
+            <Toaster position="top-right" />
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Inventario de Equipos</h1>

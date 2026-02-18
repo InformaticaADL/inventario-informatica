@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { FaTimes, FaSave, FaBuilding, FaUser, FaEnvelope, FaKey, FaListUl, FaCheckCircle, FaCommentAlt } from 'react-icons/fa';
 
 const CorreosADLModal = ({ isOpen, onClose, onSave, editingItem }) => {
@@ -41,8 +42,32 @@ const CorreosADLModal = ({ isOpen, onClose, onSave, editingItem }) => {
         }));
     };
 
+    const validateForm = () => {
+        if (!formData.nombre?.trim()) {
+            toast.error('El nombre es requerido');
+            return false;
+        }
+        if (!formData.email?.trim()) {
+            toast.error('El email es requerido');
+            return false;
+        }
+
+        // Split emails by / or , and validate each one
+        const emails = formData.email.split(/[\/,]+/).map(e => e.trim()).filter(Boolean);
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        const invalidEmails = emails.filter(email => !emailRegex.test(email));
+
+        if (invalidEmails.length > 0) {
+            toast.error(`Los siguientes correos no son válidos: ${invalidEmails.join(', ')}`);
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!validateForm()) return;
         onSave(formData);
     };
 
@@ -63,7 +88,7 @@ const CorreosADLModal = ({ isOpen, onClose, onSave, editingItem }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6" noValidate>
                     <div className="space-y-6">
                         {/* Información Personal */}
                         <div>
@@ -84,14 +109,10 @@ const CorreosADLModal = ({ isOpen, onClose, onSave, editingItem }) => {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-gray-700">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
+                                    <EmailTagsInput
+                                        label="Email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                        placeholder="correo@ejemplo.cl"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -213,3 +234,76 @@ const CorreosADLModal = ({ isOpen, onClose, onSave, editingItem }) => {
 };
 
 export default CorreosADLModal;
+
+const EmailTagsInput = ({ label, value, onChange }) => {
+    const [inputValue, setInputValue] = useState("");
+    const [error, setError] = useState(null);
+
+    // Initial emails from value string (split by / or ,)
+    const emails = value ? value.split(/[\/,]+/).map(e => e.trim()).filter(Boolean) : [];
+
+    const handleKeyDown = (e) => {
+        if (['Enter', 'Tab', ','].includes(e.key)) {
+            e.preventDefault();
+            addEmail();
+        }
+    };
+
+    const addEmail = () => {
+        const email = inputValue.trim();
+        if (!email) return;
+
+        // Simple email regex validation
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Correo inválido");
+            return;
+        }
+
+        if (emails.includes(email)) {
+            setInputValue("");
+            return;
+        }
+
+        const newEmails = [...emails, email];
+        onChange({ target: { name: 'email', value: newEmails.join(' / ') } });
+        setInputValue("");
+        setError(null);
+    };
+
+    const removeEmail = (emailToRemove) => {
+        const newEmails = emails.filter(email => email !== emailToRemove);
+        onChange({ target: { name: 'email', value: newEmails.join(' / ') } });
+    };
+
+    return (
+        <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-700">{label}</label>
+            <div className="w-full bg-gray-50 border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all p-2 min-h-[42px]">
+                <div className="flex flex-wrap gap-2">
+                    {emails.map((email, idx) => (
+                        <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-200">
+                            <span className="break-all">{email}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeEmail(email)}
+                                className="text-blue-400 hover:text-blue-900 focus:outline-none"
+                            >
+                                <FaTimes size={10} />
+                            </button>
+                        </div>
+                    ))}
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => { setInputValue(e.target.value); setError(null); }}
+                        onKeyDown={handleKeyDown}
+                        onBlur={addEmail}
+                        placeholder={emails.length === 0 ? "ingrese.correo@ejemplo.com" : ""}
+                        className="flex-1 bg-transparent outline-none text-sm text-gray-700 min-w-[150px]"
+                    />
+                </div>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        </div>
+    );
+};
