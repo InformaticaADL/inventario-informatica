@@ -3,7 +3,7 @@ const { CorreosADL } = require('../models');
 exports.getAllCorreos = async (req, res) => {
     try {
         const correos = await CorreosADL.findAll({
-            order: [['createdAt', 'DESC']]
+            order: [['id_correo', 'DESC']]
         });
         res.json(correos);
     } catch (error) {

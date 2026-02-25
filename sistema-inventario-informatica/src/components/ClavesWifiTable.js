@@ -8,39 +8,33 @@ import {
     getSortedRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { FaEdit, FaSearch, FaFileExcel, FaPlus, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaSearch, FaFileExcel, FaPlus, FaArrowUp, FaArrowDown, FaEye, FaEyeSlash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
-import CorreosADLDetailsModal from './CorreosADLDetailsModal';
 
-const CorreosADLTable = ({ data, onEdit, onAdd }) => {
+const ClavesWifiTable = ({ data, onEdit, onDelete, onAdd }) => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [sorting, setSorting] = useState([]);
-    const [habilitadoFilter, setHabilitadoFilter] = useState("ALL"); // ALL, S, N
-    const [sedeFilter, setSedeFilter] = useState("ALL");
+    const [sedeFilter, setSedeFilter] = useState('ALL');
+    const [visiblePasswords, setVisiblePasswords] = useState({});
 
-    // Details Modal State
-    const [viewItem, setViewItem] = useState(null);
-    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const togglePasswordVisibility = (id_clave, field) => {
+        setVisiblePasswords(prev => ({
+            ...prev,
+            [`${id_clave}-${field}`]: !prev[`${id_clave}-${field}`]
+        }));
+    };
 
-    // Get unique sedes for filter
     const uniqueSedes = useMemo(() => {
         const sedes = data.map(item => item.sede).filter(Boolean);
         return [...new Set(sedes)].sort();
     }, [data]);
 
-    // Filter data based on habilitado status and sede
     const filteredData = useMemo(() => {
         return data.filter(item => {
-            // Filter by Habilitado
-            const status = item.habilitado ? String(item.habilitado).toUpperCase() : 'N';
-            const matchesHabilitado = habilitadoFilter === 'ALL' || status === habilitadoFilter;
-
-            // Filter by Sede
-            const matchesSede = sedeFilter === 'ALL' || item.sede === sedeFilter;
-
-            return matchesHabilitado && matchesSede;
+            if (sedeFilter === 'ALL') return true;
+            return item.sede === sedeFilter;
         });
-    }, [data, habilitadoFilter, sedeFilter]);
+    }, [data, sedeFilter]);
 
     const columns = useMemo(() => [
         {
@@ -48,66 +42,62 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
             header: 'Sede',
         },
         {
-            accessorKey: 'area',
-            header: 'Área',
-        },
-        {
-            accessorKey: 'unidad',
-            header: 'Unidad',
-        },
-        {
             accessorKey: 'nombre',
-            header: 'Nombre',
+            header: 'Nombre (Equipo/Red)',
         },
         {
-            accessorKey: 'email',
-            header: 'Email',
+            accessorKey: 'ip',
+            header: 'IP',
             cell: ({ getValue }) => {
                 const val = getValue();
-                if (!val) return null;
+                return <span className="font-mono text-gray-600">{val || '-'}</span>;
+            }
+        },
+        {
+            accessorKey: 'password_wifi',
+            header: 'Contraseña WiFi',
+            cell: ({ row, getValue }) => {
+                const val = getValue();
+                if (!val) return '-';
+                const isVisible = visiblePasswords[`${row.original.id_clave}-wifi`];
                 return (
-                    <div className="flex flex-col gap-1">
-                        {val.split(/[\/,]+/).map((email, idx) => (
-                            <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs w-fit">
-                                {email.trim()}
-                            </span>
-                        ))}
+                    <div className="flex items-center gap-2">
+                        <span className="font-mono bg-gray-50 px-2 py-1 rounded text-gray-700 min-w-[80px]">
+                            {isVisible ? val : '••••••••'}
+                        </span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); togglePasswordVisibility(row.original.id_clave, 'wifi') }}
+                            className="text-gray-400 hover:text-blue-500 transition-colors"
+                        >
+                            {isVisible ? <FaEyeSlash /> : <FaEye />}
+                        </button>
                     </div>
                 );
             }
         },
         {
-            accessorKey: 'empresa',
-            header: 'Empresa',
+            accessorKey: 'usuario_admin',
+            header: 'Usuario Admin',
         },
         {
-            accessorKey: 'createdAt',
-            header: 'Fecha Creación',
-            cell: ({ getValue }) => {
+            accessorKey: 'password_admin',
+            header: 'Password Admin',
+            cell: ({ row, getValue }) => {
                 const val = getValue();
                 if (!val) return '-';
-                const fecha = new Date(val);
-                return fecha.toLocaleDateString('es-CL', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-        },
-        {
-            accessorKey: 'habilitado',
-            header: 'Habilitado',
-            cell: ({ getValue }) => {
-                const val = getValue();
+                const isVisible = visiblePasswords[`${row.original.id_clave}-admin`];
                 return (
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${String(val).toUpperCase() === 'S'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-rose-100 text-rose-800'
-                        }`}>
-                        {String(val).toUpperCase() === 'S' ? 'Si' : 'No'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="font-mono bg-red-50 text-red-700 px-2 py-1 rounded min-w-[80px]">
+                            {isVisible ? val : '••••••••'}
+                        </span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); togglePasswordVisibility(row.original.id_clave, 'admin') }}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                            {isVisible ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                    </div>
                 );
             }
         },
@@ -123,10 +113,17 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
                     >
                         <FaEdit />
                     </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(row.original); }}
+                        className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-md transition-colors hover:bg-white"
+                        title="Eliminar"
+                    >
+                        <FaTrash />
+                    </button>
                 </div>
             ),
         }
-    ], [onEdit]);
+    ], [onEdit, onDelete, visiblePasswords]);
 
     const table = useReactTable({
         data: filteredData,
@@ -146,24 +143,17 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
     const exportToExcel = () => {
         const dataToExport = filteredData.map(item => ({
             "Sede": item.sede,
-            "Área": item.area,
-            "Unidad": item.unidad,
-            "Nombre": item.nombre,
-            "Email": item.email,
-            "Empresa": item.empresa,
-            "Fecha Creación": item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-',
-            "Habilitado": item.habilitado === 'S' ? 'Si' : 'No'
+            "Nombre (Equipo/Red)": item.nombre,
+            "Contraseña WiFi": item.password_wifi,
+            "IP": item.ip,
+            "Usuario Admin": item.usuario_admin,
+            "Password Admin": item.password_admin
         }));
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(dataToExport);
-        XLSX.utils.book_append_sheet(wb, ws, "CorreosADL");
-        XLSX.writeFile(wb, "CorreosADL.xlsx");
-    };
-
-    const handleView = (item) => {
-        setViewItem(item);
-        setIsDetailsModalOpen(true);
+        XLSX.utils.book_append_sheet(wb, ws, "ClavesWifi");
+        XLSX.writeFile(wb, "ClavesWifi.xlsx");
     };
 
     return (
@@ -175,39 +165,22 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
                         <select
                             value={sedeFilter}
                             onChange={(e) => setSedeFilter(e.target.value)}
-                            className="px-4 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
+                            className="px-4 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 h-[38px]"
                         >
                             <option value="ALL">Todas las sedes</option>
                             {uniqueSedes.map(sede => (
                                 <option key={sede} value={sede}>{sede}</option>
                             ))}
                         </select>
-
-                        {/* Filter Buttons */}
-                        <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
-                            {['ALL', 'S', 'N'].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => setHabilitadoFilter(status)}
-                                    className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${habilitadoFilter === status
-                                        ? 'bg-white text-blue-600 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    {status === 'ALL' ? 'Todos' : status === 'S' ? 'Activos' : 'Inactivos'}
-                                </button>
-                            ))}
+                        <div className="relative w-full md:w-96">
+                            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                value={globalFilter ?? ''}
+                                onChange={e => setGlobalFilter(e.target.value)}
+                                placeholder="Buscar en claves y equipos..."
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm"
+                            />
                         </div>
-                    </div>
-
-                    <div className="relative w-full md:w-96">
-                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                            value={globalFilter ?? ''}
-                            onChange={e => setGlobalFilter(e.target.value)}
-                            placeholder="Buscar correos..."
-                            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                        />
                     </div>
                 </div>
 
@@ -217,7 +190,7 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
                         <FaPlus />
-                        <span>Agregar</span>
+                        <span>Nuevo Acceso</span>
                     </button>
                     <button
                         onClick={exportToExcel}
@@ -254,11 +227,7 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {table.getRowModel().rows.map(row => (
-                            <tr
-                                key={row.id}
-                                className="hover:bg-blue-50 transition-colors cursor-pointer"
-                                onClick={() => handleView(row.original)}
-                            >
+                            <tr key={row.id} className="hover:bg-blue-50 transition-colors">
                                 {row.getVisibleCells().map(cell => (
                                     <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -273,7 +242,7 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
                 <div>
-                    Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+                    Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount() || 1}
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -292,13 +261,8 @@ const CorreosADLTable = ({ data, onEdit, onAdd }) => {
                     </button>
                 </div>
             </div>
-            <CorreosADLDetailsModal
-                isOpen={isDetailsModalOpen}
-                onClose={() => setIsDetailsModalOpen(false)}
-                data={viewItem}
-            />
         </div>
     );
 };
 
-export default CorreosADLTable;
+export default ClavesWifiTable;

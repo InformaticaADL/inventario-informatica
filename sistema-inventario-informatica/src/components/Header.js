@@ -44,6 +44,16 @@ const Header = () => {
                                 <Link href="/dashboard/correos-adl" className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm font-medium text-sm block">
                                     Correos ADL
                                 </Link>
+                                {user.seccion === 'INF' && (
+                                    <>
+                                        <Link href="/dashboard/claves-wifi" className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm font-medium text-sm block">
+                                            Claves Wifi
+                                        </Link>
+                                        <Link href="/dashboard/casuistica" className="px-5 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-sm font-medium text-sm block">
+                                            Casuística
+                                        </Link>
+                                    </>
+                                )}
                                 <Link href="/dashboard/metrics" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm">
                                     Ver Métricas
                                 </Link>

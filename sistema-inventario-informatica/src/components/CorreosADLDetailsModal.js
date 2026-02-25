@@ -89,9 +89,8 @@ const CorreosADLDetailsModal = ({ isOpen, onClose, data }) => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-5 rounded-xl border border-gray-100">
                                 <DetailItem label="Nombre" value={data.nombre} />
                                 <DetailItem label="Correo Electrónico" value={data.email} />
-                                <DetailItem label="Correo Electrónico" value={data.email} />
                                 <DetailItem label="Contraseña" value={data.password} isCode />
-                                <DetailItem label="Fecha de Creación" value={parseDate(data.createdAt)} icon={FaCalendarAlt} />
+                                <DetailItem label="Fecha de Creación" value={parseDate(data.createdAt)} />
                             </div>
                         </div>
 
