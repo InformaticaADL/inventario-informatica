@@ -13,7 +13,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        puerto: {
+        puerto_frontend: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        puerto_backend: {
             type: DataTypes.STRING,
             allowNull: true,
         },

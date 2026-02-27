@@ -7,7 +7,8 @@ const AplicacionesModal = ({ isOpen, onClose, onSave, editingItem }) => {
     const [formData, setFormData] = useState({
         nombre: '',
         url: '',
-        puerto: '',
+        puerto_frontend: '',
+        puerto_backend: '',
         servidor: '',
         base_datos: '',
         estado: 'Activo',
@@ -21,7 +22,8 @@ const AplicacionesModal = ({ isOpen, onClose, onSave, editingItem }) => {
             setFormData({
                 nombre: '',
                 url: '',
-                puerto: '',
+                puerto_frontend: '',
+                puerto_backend: '',
                 servidor: '',
                 base_datos: '',
                 estado: 'Activo',
@@ -102,14 +104,25 @@ const AplicacionesModal = ({ isOpen, onClose, onSave, editingItem }) => {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-gray-700">Puerto</label>
+                                    <label className="text-xs font-medium text-gray-700">Puerto Frontend</label>
                                     <input
                                         type="text"
-                                        name="puerto"
-                                        value={formData.puerto}
+                                        name="puerto_frontend"
+                                        value={formData.puerto_frontend}
                                         onChange={handleChange}
                                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
-                                        placeholder="Ej. 3000, 80"
+                                        placeholder="Ej. 3000"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-gray-700">Puerto Backend</label>
+                                    <input
+                                        type="text"
+                                        name="puerto_backend"
+                                        value={formData.puerto_backend}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                                        placeholder="Ej. 8000"
                                     />
                                 </div>
                                 <div className="space-y-1">

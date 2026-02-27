@@ -44,8 +44,16 @@ const AplicacionesTable = ({ data, onEdit, onDelete, onAdd }) => {
             }
         },
         {
-            accessorKey: 'puerto',
-            header: 'Puerto',
+            accessorKey: 'puerto_frontend',
+            header: 'Puerto Frontend',
+            cell: ({ getValue }) => {
+                const val = getValue();
+                return val ? <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{val}</span> : '-';
+            }
+        },
+        {
+            accessorKey: 'puerto_backend',
+            header: 'Puerto Backend',
             cell: ({ getValue }) => {
                 const val = getValue();
                 return val ? <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{val}</span> : '-';
@@ -117,7 +125,8 @@ const AplicacionesTable = ({ data, onEdit, onDelete, onAdd }) => {
         const dataToExport = filteredData.map(item => ({
             "Nombre": item.nombre,
             "URL": item.url,
-            "Puerto": item.puerto,
+            "Puerto Frontend": item.puerto_frontend,
+            "Puerto Backend": item.puerto_backend,
             "Servidor": item.servidor,
             "Base de Datos": item.base_datos,
             "Estado": item.estado,
