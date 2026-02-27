@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaDesktop, FaEnvelope } from 'react-icons/fa';
+import { FaDesktop, FaEnvelope, FaServer } from 'react-icons/fa';
 
 export default function DashboardPage() {
     const { user, loading } = useAuth();
@@ -34,7 +34,7 @@ export default function DashboardPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4">
                 {/* Card Equipos */}
                 <Link
                     href="/dashboard/inventario"
@@ -60,6 +60,20 @@ export default function DashboardPage() {
                     <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-emerald-600 transition-colors">Correos ADL</h2>
                     <p className="text-gray-500 text-sm">
                         Administración de cuentas de correo electrónico, contraseñas y asignaciones.
+                    </p>
+                </Link>
+
+                {/* Card Aplicaciones */}
+                <Link
+                    href="/dashboard/aplicaciones"
+                    className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-purple-100 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                >
+                    <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                        <FaServer size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">Aplicaciones en Uso</h2>
+                    <p className="text-gray-500 text-sm">
+                        Registro de aplicaciones desplegadas, URLs, puertos e información de servidores.
                     </p>
                 </Link>
             </div>

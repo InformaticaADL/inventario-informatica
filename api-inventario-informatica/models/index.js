@@ -18,6 +18,7 @@ db.Office = require('./Office')(sequelize, DataTypes);
 db.CorreosADL = require('./CorreosADL')(sequelize, DataTypes);
 db.ClavesWifi = require('./ClavesWifi')(sequelize, DataTypes);
 db.Casuistica = require('./Casuistica')(sequelize, DataTypes);
+db.Aplicacion = require('./Aplicacion')(sequelize, DataTypes);
 
 // Ejecutar asociaciones
 Object.values(db).forEach((model) => {
