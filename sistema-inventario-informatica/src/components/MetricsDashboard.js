@@ -15,7 +15,8 @@ import {
     FaServer,
     FaChartPie,
     FaFileExcel,
-    FaBuilding
+    FaBuilding,
+    FaWindows
 } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import ValueDetailsModal from './ValueDetailsModal';
@@ -62,7 +63,7 @@ const KPICard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
 const MetricsDashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [brandFilter, setBrandFilter] = useState("ACTIVOS"); // ACTIVOS, INACTIVOS, TODOS
+    const [brandFilter, setBrandFilter] = useState("TODOS"); // TODAY, ACTIVOS, INACTIVOS
     const [showValueModal, setShowValueModal] = useState(false);
     const [showInactiveModal, setShowInactiveModal] = useState(false);
     const [showActiveModal, setShowActiveModal] = useState(false);
@@ -147,6 +148,27 @@ const MetricsDashboard = () => {
         locationData.push({ name: 'Otro/Sin Info', value: locationCount.otros });
     }
 
+    // 2.8 OS Distribution (Windows 10 vs 11 vs Others)
+    const osCount = data.reduce((acc, item) => {
+        let os = item.sistema_operativo ? item.sistema_operativo.trim() : '';
+        let category = 'Sin Información';
+        if (os) {
+            const lowerOS = os.toLowerCase();
+            if (lowerOS.includes('windows 11')) category = 'Windows 11';
+            else if (lowerOS.includes('windows 10')) category = 'Windows 10';
+            else if (lowerOS.includes('windows 8') || lowerOS.includes('windows 7')) category = 'Windows 7/8';
+            else if (lowerOS.includes('mac') || lowerOS.includes('osx') || lowerOS.includes('os x')) category = 'macOS';
+            else category = 'Otros';
+        }
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+    }, {});
+
+    const osData = Object.keys(osCount).map(key => ({
+        name: key,
+        value: osCount[key]
+    })).sort((a, b) => b.value - a.value);
+
     // 3. Office Versions
     const officeCount = data.reduce((acc, item) => {
         let version = 'Sin Office'; // Default for null/undefined/empty
@@ -183,18 +205,6 @@ const MetricsDashboard = () => {
         name: key,
         value: licenseCount[key]
     })).sort((a, b) => b.value - a.value);
-
-    // 4. Top Models (Top 10)
-    const modelCount = data.reduce((acc, item) => {
-        const model = item.modelo || 'Sin Modelo';
-        acc[model] = (acc[model] || 0) + 1;
-        return acc;
-    }, {});
-
-    const modelData = Object.keys(modelCount)
-        .map(key => ({ name: key, value: modelCount[key] }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10);
 
     // 4.5 Unit Distribution
     const unitCount = data.reduce((acc, item) => {
@@ -265,15 +275,6 @@ const MetricsDashboard = () => {
     return (
         <div className="p-8 bg-gray-50 min-h-screen font-sans">
             <div className="max-w-7xl mx-auto">
-                {user?.seccion === 'INF' && (
-                    <button
-                        onClick={() => router.back()}
-                        className="mb-8 flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-200"
-                    >
-                        <FaArrowLeft size={14} /> Volver al Inventario
-                    </button>
-                )}
-
                 <div className="mb-10">
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Panel de Métricas</h1>
                     <p className="text-gray-500 mt-2">Visión general del estado del inventario y distribución de recursos.</p>
@@ -457,6 +458,52 @@ const MetricsDashboard = () => {
                         </div>
                     </div>
 
+                    {/* OS Distribution (Donut Chart) - NEW */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaWindows className="text-blue-600" />
+                                <h3 className="text-lg font-bold text-gray-800">Sistemas Operativos</h3>
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                Total: {totalEquipos}
+                            </span>
+                        </div>
+                        <div className="h-72">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={osData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={90}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Sistema Operativo',
+                                                    filterType: 'OS',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    >
+                                        {osData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} cursor="pointer" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
                     {/* Brands (Pie Chart) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -469,7 +516,7 @@ const MetricsDashboard = () => {
                                     Total: {getFilteredBrandData().length}
                                 </span>
                                 <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
-                                    {['ACTIVOS', 'INACTIVOS', 'TODOS'].filter(f => {
+                                    {['TODOS', 'ACTIVOS', 'INACTIVOS'].filter(f => {
                                         if (f === 'TODOS') return true;
                                         if (f === 'ACTIVOS') return activos > 0;
                                         if (f === 'INACTIVOS') return inactivos > 0;
@@ -573,54 +620,6 @@ const MetricsDashboard = () => {
                         </div>
                     </div>
 
-
-
-                    {/* Top Models (Bar Chart) */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <FaDesktop className="text-orange-500" />
-                                <h3 className="text-lg font-bold text-gray-800">Top 10 Modelos de Equipos</h3>
-                            </div>
-                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                Total: {totalEquipos}
-                            </span>
-                        </div>
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={modelData} margin={{ bottom: 20 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                    <XAxis
-                                        dataKey="name"
-                                        angle={-45}
-                                        textAnchor="end"
-                                        interval={0}
-                                        height={80}
-                                        tick={{ fontSize: 11, fill: '#6b7280' }}
-                                    />
-                                    <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} allowDecimals={false} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Bar
-                                        dataKey="value"
-                                        fill="#f59e0b"
-                                        radius={[4, 4, 0, 0]}
-                                        name="Cantidad"
-                                        onClick={(data) => {
-                                            if (data && data.name) {
-                                                setDetailModalConfig({
-                                                    title: 'Detalle Modelo',
-                                                    filterType: 'MODEL',
-                                                    filterValue: data.name
-                                                });
-                                                setShowDetailModal(true);
-                                            }
-                                        }}
-                                        cursor="pointer"
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
 
                     {/* Unit Distribution (Bar Chart) - NEW */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">

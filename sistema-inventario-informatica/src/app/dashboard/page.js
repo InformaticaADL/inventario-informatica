@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaDesktop, FaEnvelope, FaServer } from 'react-icons/fa';
+import { FaDesktop, FaEnvelope, FaServer, FaChartBar, FaWifi, FaClipboardList, FaFileAlt } from 'react-icons/fa';
 
 export default function DashboardPage() {
     const { user, loading } = useAuth();
@@ -74,6 +74,64 @@ export default function DashboardPage() {
                     <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">Aplicaciones en Uso</h2>
                     <p className="text-gray-500 text-sm">
                         Registro de aplicaciones desplegadas, URLs, puertos e información de servidores.
+                    </p>
+                </Link>
+                {/* Ocultar Reporte para INF y GER */}
+                {user && user.seccion !== 'GER' && user.seccion !== 'INF' && (
+                    <Link
+                        href="/reportes"
+                        className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-gray-300 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                    >
+                        <div className="w-20 h-20 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-gray-600 group-hover:text-white transition-all duration-300">
+                            <FaFileAlt size={32} />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-gray-600 transition-colors">Reportes</h2>
+                        <p className="text-gray-500 text-sm">
+                            Generación de reportes detallados del inventario.
+                        </p>
+                    </Link>
+                )}
+
+                {/* Sólo para INF */}
+                {user && user.seccion === 'INF' && (
+                    <>
+                        <Link
+                            href="/dashboard/claves-wifi"
+                            className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-teal-300 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                        >
+                            <div className="w-20 h-20 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300">
+                                <FaWifi size={32} />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">Claves Wifi</h2>
+                            <p className="text-gray-500 text-sm">
+                                Gestión de contraseñas y accesos a redes inalámbricas.
+                            </p>
+                        </Link>
+                        <Link
+                            href="/dashboard/casuistica"
+                            className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-orange-300 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                        >
+                            <div className="w-20 h-20 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300">
+                                <FaClipboardList size={32} />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors">Casuística</h2>
+                            <p className="text-gray-500 text-sm">
+                                Contraseñas de clientes para casuística.
+                            </p>
+                        </Link>
+                    </>
+                )}
+
+                <Link
+                    href="/dashboard/metrics"
+                    className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-indigo-300 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                >
+                    <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                        <FaChartBar size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors">Ver Métricas</h2>
+                    <p className="text-gray-500 text-sm">
+                        Visualización de estadísticas e indicadores del sistema.
                     </p>
                 </Link>
             </div>

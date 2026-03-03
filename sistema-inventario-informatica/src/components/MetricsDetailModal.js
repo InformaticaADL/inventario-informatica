@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTimes, FaList, FaCheckCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding } from "react-icons/fa";
+import { FaTimes, FaList, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding } from "react-icons/fa";
 
 const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue, secondaryFilter }) => {
     if (!isOpen || !data) return null;
@@ -24,12 +24,6 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             if (filterValue === 'Terreno') return loc.includes('terreno');
             if (filterValue === 'Otro/Sin Info') return !loc.includes('oficina') && !loc.includes('terreno');
             return false;
-        }
-
-        if (filterType === 'MODEL') {
-            // Exact match for model name (or 'Sin Modelo')
-            const model = item.modelo || 'Sin Modelo';
-            return model === filterValue;
         }
 
         if (filterType === 'BRAND') {
@@ -62,27 +56,55 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             return unit === filterValue;
         }
 
+        if (filterType === 'OS') {
+            let os = item.sistema_operativo ? item.sistema_operativo.trim() : '';
+            if (!os && filterValue === 'Sin Información') return true;
+
+            os = os.toLowerCase();
+            if (filterValue === 'Windows 11') return os.includes('windows 11');
+            if (filterValue === 'Windows 10') return os.includes('windows 10');
+            if (filterValue === 'Windows 7/8') return os.includes('windows 8') || os.includes('windows 7');
+            if (filterValue === 'macOS') return os.includes('mac') || os.includes('osx') || os.includes('os x');
+
+            // if "Otros"
+            if (filterValue === 'Otros') {
+                if (os.includes('windows') || os.includes('mac') || os.includes('osx')) return false;
+                return os !== '';
+            }
+            if (filterValue === 'Sin Información') return os === '';
+
+            return false;
+        }
+
         return false;
     });
 
     // Helper to pick an icon based on filter type
     const renderIcon = () => {
-        if (filterType === 'STATUS') return <FaCheckCircle size={24} />;
+        if (filterType === 'STATUS') {
+            if (filterValue === 'Inactivos') return <FaTimesCircle size={24} />;
+            return <FaCheckCircle size={24} />;
+        }
         if (filterType === 'LOCATION') return <FaMapMarkerAlt size={24} />;
-        if (filterType === 'MODEL') return <FaDesktop size={24} />;
+
         if (filterType === 'BRAND') return <FaDesktop size={24} />;
         if (filterType === 'LICENSE') return <FaWindows size={24} />;
+        if (filterType === 'OS') return <FaWindows size={24} />;
         if (filterType === 'UNIT') return <FaBuilding size={24} />;
         return <FaList size={24} />;
     };
 
     // Helper for chip color in modal header
     const getHeaderColor = () => {
-        if (filterType === 'STATUS') return "bg-emerald-100 text-emerald-600 from-emerald-50";
+        if (filterType === 'STATUS') {
+            if (filterValue === 'Inactivos') return "bg-red-100 text-red-600 from-red-50";
+            return "bg-emerald-100 text-emerald-600 from-emerald-50";
+        }
         if (filterType === 'LOCATION') return "bg-teal-100 text-teal-600 from-teal-50";
-        if (filterType === 'MODEL') return "bg-orange-100 text-orange-600 from-orange-50";
+
         if (filterType === 'BRAND') return "bg-indigo-100 text-indigo-600 from-indigo-50";
         if (filterType === 'LICENSE') return "bg-cyan-100 text-cyan-600 from-cyan-50";
+        if (filterType === 'OS') return "bg-pink-100 text-pink-600 from-pink-50";
         if (filterType === 'UNIT') return "bg-purple-100 text-purple-600 from-purple-50";
         return "bg-blue-100 text-blue-600 from-blue-50";
     };
