@@ -10,14 +10,10 @@ export default function DashboardPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && user) {
-            if (user.seccion === 'GER') {
-                router.push('/dashboard/metrics');
-            }
-        }
+        // Ninguna redirección automática. Todos ven el dashboard.
     }, [user, loading, router]);
 
-    if (loading || (user && user.seccion === 'GER')) {
+    if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

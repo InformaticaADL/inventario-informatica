@@ -11,16 +11,7 @@ export default function InventarioPage() {
     const [showImage, setShowImage] = useState(false);
 
     useEffect(() => {
-        if (!loading && user) {
-            // Keep the GER redirect logic if relevant for this specific view, 
-            // or maybe GER users shouldn't even see the card to get here? 
-            // For now, I'll keep it to be safe, or remove it if GER only uses Metrics.
-            // The original code redirected GER from dashboard to metrics. 
-            // If they land here, they might still need redirect if they shouldn't see this.
-            if (user.seccion === 'GER') {
-                router.push('/dashboard/metrics');
-            }
-        }
+        // Ninguna restricción de GER, todos los usuarios pueden acceder
     }, [user, loading, router]);
 
     if (loading) {
