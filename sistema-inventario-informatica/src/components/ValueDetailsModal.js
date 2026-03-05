@@ -1,7 +1,7 @@
 "use client";
 
 import { FaTimes, FaDesktop, FaUser, FaDollarSign } from "react-icons/fa";
-import { formatCLP } from "@/utils/formatters";
+import { formatCLP, getLastResponsable } from "@/utils/formatters";
 import { parseCLP } from "@/utils/numberParsers";
 
 const ValueDetailsModal = ({ isOpen, onClose, data }) => {
@@ -17,7 +17,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh] animate-fadeIn">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] flex flex-col max-h-[90vh] animate-fadeIn">
 
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white rounded-t-xl">
@@ -50,6 +50,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">ID</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Equipo</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Usuario / Ubicación</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Responsable</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Valor Neto</th>
                             </tr>
                         </thead>
@@ -73,6 +74,9 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{item.nombre_usuario || "Sin Asignar"}</div>
                                         <div className="text-xs text-gray-500">{item.unidad || item.ubicacion}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
                                         {item.valor_neto ? formatCLP(parseCLP(item.valor_neto)) : '-'}

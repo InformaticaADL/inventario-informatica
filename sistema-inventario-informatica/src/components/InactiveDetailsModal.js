@@ -1,7 +1,7 @@
 "use client";
 
 import { FaTimes, FaDesktop, FaTimesCircle } from "react-icons/fa";
-import { formatCLP } from "@/utils/formatters";
+import { formatCLP, getLastResponsable } from "@/utils/formatters";
 import { parseCLP } from "@/utils/numberParsers";
 
 const InactiveDetailsModal = ({ isOpen, onClose, data }) => {
@@ -45,6 +45,7 @@ const InactiveDetailsModal = ({ isOpen, onClose, data }) => {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">ID</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Equipo</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Ubicación / Detalles</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Responsable</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Valor Neto</th>
                             </tr>
                         </thead>
@@ -69,6 +70,9 @@ const InactiveDetailsModal = ({ isOpen, onClose, data }) => {
                                         <div className="text-sm text-gray-900">{item.ubicacion || "Sin ubicación"}</div>
                                         <div className="text-xs text-gray-500">{item.observaciones || "Sin observaciones"}</div>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
                                         {/* Mostramos valor si lo hay, aunque no sume al total activo */}
                                         {item.valor_neto ? formatCLP(parseCLP(item.valor_neto)) : '-'}
@@ -77,7 +81,7 @@ const InactiveDetailsModal = ({ isOpen, onClose, data }) => {
                             ))}
                             {inactiveItems.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
                                         No se encontraron equipos inactivos.
                                     </td>
                                 </tr>

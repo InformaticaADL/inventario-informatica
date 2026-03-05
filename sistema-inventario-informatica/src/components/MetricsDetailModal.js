@@ -1,6 +1,7 @@
 "use client";
 
 import { FaTimes, FaList, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding } from "react-icons/fa";
+import { getLastResponsable } from "@/utils/formatters";
 
 const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterValue, secondaryFilter }) => {
     if (!isOpen || !data) return null;
@@ -111,7 +112,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh] animate-fadeIn">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] flex flex-col max-h-[90vh] animate-fadeIn">
 
                 {/* Header */}
                 <div className={`flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r rounded-t-xl ${getHeaderColor()}`}>
@@ -174,7 +175,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                         <div className="text-xs text-gray-500">{item.ubicacion || "Sin ubicación"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {item.nombre_responsable || "Sin responsable"}
+                                        {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(item.operativo === 'SI') ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"

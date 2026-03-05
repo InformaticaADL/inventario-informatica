@@ -15,3 +15,10 @@ export const formatCLP = (value) => {
         maximumFractionDigits: 0
     }).format(num);
 };
+
+export const getLastResponsable = (responsableStr) => {
+    if (!responsableStr) return null;
+    const parts = responsableStr.split(/[,/;]|\s-\s/).map(s => s.trim()).filter(Boolean);
+    if (parts.length === 0) return null;
+    return parts[parts.length - 1];
+};

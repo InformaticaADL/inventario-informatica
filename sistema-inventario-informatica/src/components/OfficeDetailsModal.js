@@ -1,6 +1,7 @@
 "use client";
 
 import { FaTimes, FaDesktop, FaCheckCircle } from "react-icons/fa";
+import { getLastResponsable } from "@/utils/formatters";
 
 const OfficeDetailsModal = ({ isOpen, onClose, data, filterVersion }) => {
     if (!isOpen || !data || !filterVersion) return null;
@@ -31,7 +32,7 @@ const OfficeDetailsModal = ({ isOpen, onClose, data, filterVersion }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh] animate-fadeIn">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] flex flex-col max-h-[90vh] animate-fadeIn">
 
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white rounded-t-xl">
@@ -66,6 +67,7 @@ const OfficeDetailsModal = ({ isOpen, onClose, data, filterVersion }) => {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Sistema Operativo</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Versión Office</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Ubicación / Usuario</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Responsable</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -106,11 +108,14 @@ const OfficeDetailsModal = ({ isOpen, onClose, data, filterVersion }) => {
                                         <div className="text-sm text-gray-900">{item.nombre_usuario || "Sin usuario"}</div>
                                         <div className="text-xs text-gray-500">{item.ubicacion || "Sin ubicación"}</div>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
+                                    </td>
                                 </tr>
                             ))}
                             {filteredItems.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                                         No se encontraron equipos para esta versión.
                                     </td>
                                 </tr>

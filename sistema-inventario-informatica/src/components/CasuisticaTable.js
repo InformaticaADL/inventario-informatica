@@ -37,28 +37,19 @@ const CasuisticaTable = ({ data, onEdit, onDelete, onAdd }) => {
         {
             accessorKey: 'correo',
             header: 'Correos Electrónicos',
-            cell: ({ row, getValue }) => {
+            cell: ({ getValue }) => {
                 const val = getValue();
                 if (!val) return <span className="text-gray-400 italic">-</span>;
                 // Dividir por comas o punto y coma
                 const emails = val.split(/[,;]+/).map(e => e.trim()).filter(Boolean);
 
                 return (
-                    <div className="flex items-start justify-between group">
-                        <div className="flex flex-col gap-1">
-                            {emails.map((email, idx) => (
-                                <span key={idx} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs w-fit font-medium">
-                                    {email}
-                                </span>
-                            ))}
-                        </div>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleCopy(val, row.original.id_casuistica); }}
-                            className="text-gray-400 hover:text-blue-600 p-1.5 rounded-md hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100"
-                            title="Copiar todos los correos"
-                        >
-                            {copiedId === row.original.id_casuistica ? <FaCheck className="text-emerald-500" /> : <FaCopy />}
-                        </button>
+                    <div className="flex flex-col gap-1">
+                        {emails.map((email, idx) => (
+                            <span key={idx} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs w-fit font-medium">
+                                {email}
+                            </span>
+                        ))}
                     </div>
                 );
             }
@@ -66,13 +57,22 @@ const CasuisticaTable = ({ data, onEdit, onDelete, onAdd }) => {
         {
             accessorKey: 'pass',
             header: 'Contraseña (PASS)',
-            cell: ({ getValue }) => {
+            cell: ({ row, getValue }) => {
                 const val = getValue();
                 if (!val) return '-';
                 return (
-                    <span className="font-mono bg-yellow-50 text-yellow-800 border border-yellow-200 px-2 py-1 rounded select-all cursor-text">
-                        {val}
-                    </span>
+                    <div className="flex items-center justify-between group gap-2">
+                        <span className="font-mono bg-yellow-50 text-yellow-800 border border-yellow-200 px-2 py-1 rounded select-all cursor-text">
+                            {val}
+                        </span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleCopy(val, row.original.id_casuistica); }}
+                            className="text-gray-400 hover:text-yellow-600 p-1.5 rounded-md hover:bg-yellow-100 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Copiar contraseña"
+                        >
+                            {copiedId === row.original.id_casuistica ? <FaCheck className="text-emerald-500" /> : <FaCopy />}
+                        </button>
+                    </div>
                 );
             }
         },
