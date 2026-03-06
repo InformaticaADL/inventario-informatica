@@ -48,9 +48,9 @@ const calculateNextMaintenance = (fechaMantencion) => {
     let icon = <FaCheckCircle className="text-green-600" />;
 
     if (differenceInDays < 0) {
-        status = 'Vencida';
-        colorClass = 'bg-red-100 text-red-800 border-red-200';
-        icon = <FaExclamationTriangle className="text-red-600" />;
+        status = 'Realizada';
+        colorClass = 'bg-blue-100 text-blue-800 border-blue-200';
+        icon = <FaCheckCircle className="text-blue-600" />;
     } else if (differenceInDays <= 30) {
         status = 'Próxima a vencer';
         colorClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -141,7 +141,7 @@ const MantencionesTable = ({ data, onDuplicate }) => {
                             {info.icon}
                             <span>{info.status}</span>
                             <span className="ml-1 opacity-75 hidden sm:inline">
-                                ({Math.abs(info.daysRemaining)} días {info.daysRemaining < 0 ? 'atraso' : 'restantes'})
+                                ({Math.abs(info.daysRemaining)} días {info.daysRemaining < 0 ? 'transcurridos' : 'restantes'})
                             </span>
                         </div>
                     </div>
