@@ -20,7 +20,7 @@ const CasuisticaPage = () => {
 
     useEffect(() => {
         if (!authLoading) {
-            if (!user || user.seccion !== 'INF') {
+            if (!user || (user.seccion !== 'INF' && user.seccion !== 'GER')) {
                 router.push('/dashboard');
             } else {
                 fetchCasuisticas();
@@ -88,7 +88,7 @@ const CasuisticaPage = () => {
         );
     }
 
-    if (user?.seccion !== 'INF') return null;
+    if (user?.seccion !== 'INF' && user?.seccion !== 'GER') return null;
 
     return (
         <div className="flex flex-col h-full">

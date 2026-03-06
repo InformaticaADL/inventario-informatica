@@ -327,7 +327,7 @@ const InventarioTable = () => {
                             <FaSearch className="absolute left-3 top-3 text-gray-400" />
                         </div>
 
-                        {user?.seccion === 'INF' && (
+                        {(user?.seccion === 'INF' || user?.seccion === 'GER') && (
                             <button
                                 onClick={() => { setSelectedItem(null); setIsModalOpen(true); }}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap"
@@ -414,7 +414,7 @@ const InventarioTable = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.modelo}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                                    {user?.seccion === 'INF' && (
+                                    {(user?.seccion === 'INF' || user?.seccion === 'GER') && (
                                         <>
                                             <button
                                                 onClick={(e) => handleEdit(item, e)}

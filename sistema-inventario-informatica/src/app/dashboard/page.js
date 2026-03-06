@@ -3,8 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaDesktop, FaEnvelope, FaServer, FaChartBar, FaWifi, FaClipboardList, FaFileAlt } from 'react-icons/fa';
-
+import { FaDesktop, FaEnvelope, FaServer, FaChartBar, FaWifi, FaClipboardList, FaFileAlt, FaTools } from 'react-icons/fa';
 export default function DashboardPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -72,8 +71,24 @@ export default function DashboardPage() {
                         Registro de aplicaciones desplegadas, URLs, puertos e información de servidores.
                     </p>
                 </Link>
-                {/* Ocultar Reporte para INF y GER */}
-                {user && user.seccion !== 'GER' && user.seccion !== 'INF' && (
+
+                {/* Card Mantenciones */}
+                <Link
+                    href="/dashboard/mantenciones"
+                    className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-amber-100 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                >
+                    <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
+                        <FaTools size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-amber-600 transition-colors">Mantenciones</h2>
+                    <p className="text-gray-500 text-sm">
+                        Registro de mantenciones preventivas y correctivas de laboratorios.
+                    </p>
+                </Link>
+
+                {/* Módulo de Reportes oculto según requerimiento */}
+                {/* 
+                {user && (user.seccion === 'INF' || user.seccion === 'GER') && (
                     <Link
                         href="/reportes"
                         className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-gray-300 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
@@ -87,9 +102,10 @@ export default function DashboardPage() {
                         </p>
                     </Link>
                 )}
+                */}
 
-                {/* Sólo para INF */}
-                {user && user.seccion === 'INF' && (
+                {/* Sólo para INF y GER */}
+                {user && (user.seccion === 'INF' || user.seccion === 'GER') && (
                     <>
                         <Link
                             href="/dashboard/claves-wifi"
