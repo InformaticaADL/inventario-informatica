@@ -6,10 +6,10 @@ import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
 import { toast } from 'react-hot-toast';
 
-import InventarioModal from "./InventarioModal";
-import InventarioDetailsModal from "./InventarioDetailsModal";
+import ImpresoraModal from "./ImpresoraModal";
+import ImpresoraDetailsModal from "./ImpresoraDetailsModal";
 
-const InventarioTable = () => {
+const ImpresorasTable = () => {
     const { user } = useAuth();
     const router = useRouter();
     const [data, setData] = useState([]);
@@ -47,6 +47,10 @@ const InventarioTable = () => {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [viewItem, setViewItem] = useState(null);
 
+    // Delete Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+
     const itemsPerPage = 10;
 
     useEffect(() => {
@@ -57,12 +61,13 @@ const InventarioTable = () => {
 
     const fetchData = async () => {
         try {
-            const response = await api.get("/inventario");
+            const response = await api.get("/impresoras");
             // Normalize 'Aysén' to 'Aysen'
-            const normalizedData = response.data.map(item => ({
-                ...item,
-                sede: item.sede && item.sede.includes('Aysén') ? item.sede.replace('Aysén', 'Aysen') : item.sede
-            }));
+            const normalizedData = response.data
+                .map(item => ({
+                    ...item,
+                    sede: item.sede && item.sede.includes('Aysén') ? item.sede.replace('Aysén', 'Aysen') : item.sede
+                }));
             setData(normalizedData);
             setLoading(false);
         } catch (error) {
@@ -101,7 +106,7 @@ const InventarioTable = () => {
             filtered = filtered.filter((item) => item.unidad && item.unidad.trim().toUpperCase() === seccionFilter);
         }
 
-        // SO Filter
+        // SO Filter not applicable for Printers usually, but leaving it disabled/hidden in UI later
         if (soFilter !== "ALL" && excludeKey !== "so") {
             filtered = filtered.filter((item) => item.sistema_operativo && item.sistema_operativo.toUpperCase() === soFilter);
         }
@@ -133,7 +138,7 @@ const InventarioTable = () => {
     const filteredData = [...baseFilteredData].sort((a, b) => {
         if (!sortConfig.key) {
             // Default sort: ID ascending to keep position stable
-            return (a.id_inventario || 0) - (b.id_inventario || 0);
+            return (a.id_impresora || 0) - (b.id_impresora || 0);
         }
         const key = sortConfig.key;
         if (!a[key]) return 1;
@@ -171,29 +176,34 @@ const InventarioTable = () => {
         e.stopPropagation();
         try {
             const updatedItem = { ...item, revisado: !item.revisado };
-            await api.put(`/inventario/${item.id_inventario}`, updatedItem);
+            await api.put(`/impresoras/${item.id_impresora}`, updatedItem);
             // Optimistic update or refresh
-            setData(prev => prev.map(i => i.id_inventario === item.id_inventario ? updatedItem : i));
+            setData(prev => prev.map(i => i.id_impresora === item.id_impresora ? updatedItem : i));
         } catch (error) {
             console.error("Error updating status:", error);
             toast.error("Error al actualizar estado");
         }
     };
 
-    const handleDelete = async (item, e) => {
+    const handleDelete = (item, e) => {
         e.stopPropagation();
+        setItemToDelete(item);
+        setIsDeleteModalOpen(true);
+    };
 
-        if (!window.confirm("¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.")) {
-            return;
-        }
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
 
         try {
-            await api.delete(`/inventario/${item.id_inventario}`);
-            setData(prev => prev.filter(i => i.id_inventario !== item.id_inventario));
-            toast.success("Equipo eliminado correctamente");
+            await api.delete(`/impresoras/${itemToDelete.id_impresora}`);
+            setData(prev => prev.filter(i => i.id_impresora !== itemToDelete.id_impresora));
+            toast.success("Impresora eliminada correctamente");
         } catch (error) {
             console.error("Error deleting item:", error);
             toast.error("Error al eliminar el equipo");
+        } finally {
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
         }
     };
 
@@ -206,12 +216,12 @@ const InventarioTable = () => {
         try {
             if (selectedItem) {
                 // Update existing
-                await api.put(`/inventario/${selectedItem.id_inventario}`, formData);
-                toast.success("Inventario actualizado correctamente");
+                await api.put(`/impresoras/${selectedItem.id_impresora}`, formData);
+                toast.success("Impresora actualizada correctamente");
             } else {
-                // Create new (Not implemented trigger yet, but ready logic)
-                await api.post("/inventario", formData);
-                toast.success("Equipo creado correctamente");
+                // Create new
+                await api.post("/impresoras", formData);
+                toast.success("Impresora creada correctamente");
             }
             setIsModalOpen(false);
             setSelectedItem(null);
@@ -251,12 +261,12 @@ const InventarioTable = () => {
         return text;
     };
 
-    if (loading) return <div className="text-center p-10">Cargando inventario...</div>;
+    if (loading) return <div className="text-center p-10">Cargando impresoras y escáneres...</div>;
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
             <div className="flex flex-col md:flex-row items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold text-gray-800 mr-auto md:mr-4">Inventario</h2>
+                <h2 className="text-1xl font-bold text-gray-800 mr-auto md:mr-4">Listado de Impresoras y Escáneres</h2>
 
                 <div className="flex flex-col md:flex-row gap-2 items-center flex-wrap">
                     {/* Status Filters */}
@@ -305,17 +315,7 @@ const InventarioTable = () => {
                         ))}
                     </select>
 
-                    {/* SO Filter */}
-                    <select
-                        value={soFilter}
-                        onChange={(e) => { setSoFilter(e.target.value); setCurrentPage(1); }}
-                        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
-                    >
-                        <option value="ALL">Todo S.O.</option>
-                        {uniqueSos.map((so) => (
-                            <option key={so} value={so}>{so}</option>
-                        ))}
-                    </select>
+                    {/* SO Filter REMOVED for Printers */}
 
                     <div className="flex items-center gap-2">
                         <div className="relative">
@@ -346,8 +346,8 @@ const InventarioTable = () => {
                     <thead className="bg-gray-50">
                         <tr>
                             {/* Define columns explicitly for better control or map keys for dynamic */}
-                            {['Revisado', 'Sede', 'Operativo', 'Estado', 'Responsable', 'Usuario', 'Ubicacion', 'Modelo', 'IP', 'Acciones'].map((header, idx) => {
-                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Revisado': 'revisado', 'Estado': 'estado', 'Responsable': 'nombre_responsable', 'Usuario': 'nombre_usuario', 'Ubicacion': 'ubicacion', 'Modelo': 'modelo', 'IP': 'ip' };
+                            {['Revisado', 'Sede', 'Operativo', 'Nombre', 'Marca', 'Ubicacion', 'Usuario', 'IP', 'Acciones'].map((header, idx) => {
+                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Revisado': 'revisado', 'Nombre': 'nombre_impresora', 'Marca': 'marca', 'Ubicacion': 'ubicacion', 'Usuario': 'nombre_usuario', 'IP': 'ip' };
                                 const key = keyMap[header];
                                 return (
                                     <th
@@ -369,9 +369,9 @@ const InventarioTable = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentItems.map((item) => (
                             <tr
-                                key={item.id_inventario}
+                                key={item.id_impresora}
                                 onClick={() => handleView(item)}
-                                className="hover:bg-blue-50 transition-colors cursor-pointer"
+                                className="hover:bg-purple-50 transition-colors cursor-pointer"
                             >
                                 {/* ID Column removed */}
                                 <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -395,25 +395,15 @@ const InventarioTable = () => {
                                         {String(item.operativo).toUpperCase() === 'SI' ? 'Activo' : String(item.operativo).toUpperCase() === 'ROBADO' ? 'Robado' : 'Inactivo'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(item.estado)}`}>
-                                        {item.estado || 'N/A'}
-                                    </span>
-                                </td>
-                                <td
-                                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                    title={item.nombre_responsable}
-                                >
-                                    {formatResponsible(item.nombre_responsable)}
-                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{item.nombre_impresora}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{item.marca}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.ubicacion}</td>
                                 <td
                                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                                     title={item.nombre_usuario}
                                 >
                                     {formatResponsible(item.nombre_usuario)}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.ubicacion}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.modelo}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                     {(user?.seccion === 'INF' || user?.seccion === 'GER') && (
@@ -484,20 +474,58 @@ const InventarioTable = () => {
                 </div>
             </div>
 
-            <InventarioModal
+            <ImpresoraModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSave}
                 initialData={selectedItem}
             />
 
-            <InventarioDetailsModal
+            <ImpresoraDetailsModal
                 isOpen={isDetailsModalOpen}
                 onClose={() => setIsDetailsModalOpen(false)}
                 data={viewItem}
             />
+
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md m-auto animate-fadeIn overflow-hidden border border-gray-100">
+                        <div className="p-6">
+                            <div className="flex justify-center mb-4">
+                                <div className="bg-red-100 p-3 rounded-full text-red-600">
+                                    <FaTrash size={24} />
+                                </div>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                                Eliminar Impresora / Escáner
+                            </h3>
+                            <p className="text-gray-500 text-center text-sm md:text-base mb-6">
+                                ¿Estás seguro que deseas eliminar el equipo <strong>{itemToDelete?.nombre_impresora}</strong>? Esta acción no se puede deshacer.
+                            </p>
+                            <div className="flex flex-col-reverse sm:flex-row gap-3 justify-center">
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteModalOpen(false);
+                                        setItemToDelete(null);
+                                    }}
+                                    className="px-5 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm sm:w-auto w-full"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="px-5 py-2.5 text-white bg-red-600 rounded-lg hover:bg-red-700 hover:shadow-lg transition-all font-medium text-sm sm:w-auto w-full"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default InventarioTable;
+export default ImpresorasTable;

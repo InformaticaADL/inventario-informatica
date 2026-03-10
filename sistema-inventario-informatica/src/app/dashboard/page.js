@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaDesktop, FaEnvelope, FaServer, FaChartBar, FaWifi, FaClipboardList, FaFileAlt, FaTools } from 'react-icons/fa';
+import { FaDesktop, FaEnvelope, FaServer, FaChartBar, FaWifi, FaClipboardList, FaFileAlt, FaTools, FaPrint } from 'react-icons/fa';
 export default function DashboardPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -41,6 +41,20 @@ export default function DashboardPage() {
                     <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">Equipos y Periféricos</h2>
                     <p className="text-gray-500 text-sm">
                         Gestión detallada de computadores, monitores, impresoras y otros activos de hardware.
+                    </p>
+                </Link>
+
+                {/* Card Impresoras */}
+                <Link
+                    href="/dashboard/impresoras"
+                    className="group bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-purple-200 transition-all duration-300 flex flex-col items-center text-center cursor-pointer"
+                >
+                    <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                        <FaPrint size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">Impresoras</h2>
+                    <p className="text-gray-500 text-sm">
+                        Registro y control de impresoras y periféricos de impresión.
                     </p>
                 </Link>
 

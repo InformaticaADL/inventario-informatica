@@ -20,6 +20,8 @@ db.ClavesWifi = require('./ClavesWifi')(sequelize, DataTypes);
 db.Casuistica = require('./Casuistica')(sequelize, DataTypes);
 db.Aplicacion = require('./Aplicacion')(sequelize, DataTypes);
 db.Mantencion = require('./Mantencion')(sequelize, DataTypes);
+db.Impresora = require('./Impresora')(sequelize, DataTypes);
+db.MarcaImpresora = require('./MarcaImpresora')(sequelize, DataTypes);
 
 // Ejecutar asociaciones
 Object.values(db).forEach((model) => {

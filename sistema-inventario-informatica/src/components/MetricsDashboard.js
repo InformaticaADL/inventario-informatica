@@ -11,6 +11,8 @@ import {
     FaDesktop,
     FaCheckCircle,
     FaTimesCircle,
+    FaUserSecret,
+    FaPrint,
     FaDollarSign,
     FaServer,
     FaChartPie,
@@ -22,6 +24,8 @@ import * as XLSX from 'xlsx';
 import ValueDetailsModal from './ValueDetailsModal';
 import InactiveDetailsModal from './InactiveDetailsModal';
 import ActiveDetailsModal from './ActiveDetailsModal';
+import RobadoDetailsModal from './RobadoDetailsModal';
+import PrinterDetailsModal from './PrinterDetailsModal';
 import OfficeDetailsModal from './OfficeDetailsModal';
 import MetricsDetailModal from './MetricsDetailModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +71,8 @@ const MetricsDashboard = () => {
     const [showValueModal, setShowValueModal] = useState(false);
     const [showInactiveModal, setShowInactiveModal] = useState(false);
     const [showActiveModal, setShowActiveModal] = useState(false);
+    const [showRobadoModal, setShowRobadoModal] = useState(false);
+    const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showOfficeModal, setShowOfficeModal] = useState(false);
     const [selectedOfficeVersion, setSelectedOfficeVersion] = useState(null);
 
@@ -77,11 +83,17 @@ const MetricsDashboard = () => {
     const router = useRouter();
     const { user } = useAuth();
 
+    const [impresorasData, setImpresorasData] = useState([]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await api.get("/inventario");
-                setData(response.data);
+                const [invRes, printerRes] = await Promise.all([
+                    api.get("/inventario"),
+                    api.get("/impresoras")
+                ]);
+                setData(invRes.data);
+                setImpresorasData(printerRes.data);
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -105,7 +117,9 @@ const MetricsDashboard = () => {
     // Normalize and count
     const activos = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'SI').length;
     const inactivos = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'NO').length;
-    const otros = totalEquipos - (activos + inactivos);
+    const robados = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'ROBADO').length;
+    const impresoras = impresorasData.length;
+    const otros = totalEquipos - (activos + inactivos + robados);
 
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
     // Calculate approximate value if 'valor_neto' exists and is numeric-ish
@@ -122,6 +136,10 @@ const MetricsDashboard = () => {
         { name: 'Activos', value: activos },
         { name: 'Inactivos', value: inactivos },
     ];
+
+    if (robados > 0) {
+        operativoData.push({ name: 'Robados', value: robados });
+    }
 
     if (otros > 0) {
         operativoData.push({ name: 'Sin Info / Otros', value: otros });
@@ -229,6 +247,8 @@ const MetricsDashboard = () => {
             filtered = data.filter(i => i.operativo === 'SI');
         } else if (brandFilter === 'INACTIVOS') {
             filtered = data.filter(i => i.operativo === 'NO');
+        } else if (brandFilter === 'ROBADOS') {
+            filtered = data.filter(i => i.operativo && i.operativo.trim().toUpperCase() === 'ROBADO');
         }
         return filtered;
     };
@@ -307,7 +327,25 @@ const MetricsDashboard = () => {
                             colorClass="text-red-600"
                         />
                     </div>
-                    <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                    <div onClick={() => setShowRobadoModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                        <KPICard
+                            title="Equipos Robados"
+                            value={robados}
+                            icon={FaUserSecret}
+                            bgClass="bg-orange-50"
+                            colorClass="text-orange-600"
+                        />
+                    </div>
+                    <div onClick={() => setShowPrinterModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                        <KPICard
+                            title="Total Impresoras"
+                            value={impresoras}
+                            icon={FaPrint}
+                            bgClass="bg-purple-50"
+                            colorClass="text-purple-600"
+                        />
+                    </div>
+                    <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105 lg:col-span-3">
                         <KPICard
                             title="Valor Estimado Total"
                             value={totalValor > 0 ? formattedValor : "N/A"}
@@ -343,6 +381,7 @@ const MetricsDashboard = () => {
                                         outerRadius={90}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                         onClick={(data) => {
                                             if (data && data.name) {
                                                 setDetailModalConfig({
@@ -388,6 +427,7 @@ const MetricsDashboard = () => {
                                         outerRadius={90}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                         onClick={(data) => {
                                             if (data && data.name) {
                                                 setDetailModalConfig({
@@ -402,6 +442,7 @@ const MetricsDashboard = () => {
                                     >
                                         <Cell fill="#10b981" cursor="pointer" /> {/* Activos */}
                                         <Cell fill="#ef4444" cursor="pointer" /> {/* Inactivos */}
+                                        {robados > 0 && <Cell fill="#f97316" cursor="pointer" />} {/* Robados */}
                                         {otros > 0 && <Cell fill="#9ca3af" cursor="pointer" />} {/* Otros - Gray */}
                                     </Pie>
                                     <Tooltip content={<CustomTooltip />} />
@@ -516,10 +557,11 @@ const MetricsDashboard = () => {
                                     Total: {getFilteredBrandData().length}
                                 </span>
                                 <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
-                                    {['TODOS', 'ACTIVOS', 'INACTIVOS'].filter(f => {
+                                    {['TODOS', 'ACTIVOS', 'INACTIVOS', 'ROBADOS'].filter(f => {
                                         if (f === 'TODOS') return true;
                                         if (f === 'ACTIVOS') return activos > 0;
                                         if (f === 'INACTIVOS') return inactivos > 0;
+                                        if (f === 'ROBADOS') return robados > 0;
                                         return true;
                                     }).map((filter) => (
                                         <button
@@ -694,6 +736,18 @@ const MetricsDashboard = () => {
             <ActiveDetailsModal
                 isOpen={showActiveModal}
                 onClose={() => setShowActiveModal(false)}
+                data={data}
+            />
+
+            <RobadoDetailsModal
+                isOpen={showRobadoModal}
+                onClose={() => setShowRobadoModal(false)}
+                data={data}
+            />
+
+            <PrinterDetailsModal
+                isOpen={showPrinterModal}
+                onClose={() => setShowPrinterModal(false)}
                 data={data}
             />
 

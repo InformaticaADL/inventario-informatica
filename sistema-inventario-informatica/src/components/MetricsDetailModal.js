@@ -14,8 +14,9 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             const op = item.operativo ? item.operativo.trim().toUpperCase() : 'NO';
             if (filterValue === 'Activos') return op === 'SI';
             if (filterValue === 'Inactivos') return op === 'NO';
+            if (filterValue === 'Robados') return op === 'ROBADO';
             // For 'Otros' or similar, we might need adjustments, but based on current dashboard logic:
-            if (filterValue === 'Sin Info / Otros') return op !== 'SI' && op !== 'NO';
+            if (filterValue === 'Sin Info / Otros') return op !== 'SI' && op !== 'NO' && op !== 'ROBADO';
             return false;
         }
 
@@ -41,6 +42,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                 const op = item.operativo ? item.operativo.trim().toUpperCase() : 'NO';
                 if (secondaryFilter === 'ACTIVOS' && op !== 'SI') return false;
                 if (secondaryFilter === 'INACTIVOS' && op !== 'NO') return false;
+                if (secondaryFilter === 'ROBADOS' && op !== 'ROBADO') return false;
             }
 
             return true;
@@ -99,6 +101,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
     const getHeaderColor = () => {
         if (filterType === 'STATUS') {
             if (filterValue === 'Inactivos') return "bg-red-100 text-red-600 from-red-50";
+            if (filterValue === 'Robados') return "bg-orange-100 text-orange-600 from-orange-50";
             return "bg-emerald-100 text-emerald-600 from-emerald-50";
         }
         if (filterType === 'LOCATION') return "bg-teal-100 text-teal-600 from-teal-50";
@@ -178,9 +181,9 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                         {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(item.operativo === 'SI') ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(item.operativo === 'SI') ? "bg-emerald-100 text-emerald-800" : (item.operativo === 'ROBADO') ? "bg-orange-100 text-orange-800" : "bg-red-100 text-red-800"
                                             }`}>
-                                            {(item.operativo === 'SI') ? "Activo" : "Inactivo"}
+                                            {(item.operativo === 'SI') ? "Activo" : (item.operativo === 'ROBADO') ? "Robado" : "Inactivo"}
                                         </span>
                                     </td>
                                 </tr>

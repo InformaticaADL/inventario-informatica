@@ -193,8 +193,8 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                     </div>
                                     <DetailItem
                                         label="Estado Operativo"
-                                        value={data.operativo === "SI" ? "Operativo" : "De baja"}
-                                        isStatus={data.operativo === "SI" ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs uppercase font-bold" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-xs uppercase font-bold"}
+                                        value={data.operativo === "SI" ? "Operativo" : data.operativo === "ROBADO" ? "Robado" : "De baja"}
+                                        isStatus={data.operativo === "SI" ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs uppercase font-bold" : data.operativo === "ROBADO" ? "text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 text-xs uppercase font-bold" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-xs uppercase font-bold"}
                                     />
                                 </div>
                             </div>

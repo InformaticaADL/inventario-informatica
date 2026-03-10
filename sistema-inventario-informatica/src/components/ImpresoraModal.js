@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 import {
     FaTimes,
     FaSave,
-    FaDesktop,
+    FaPrint,
     FaPlus,
     FaUser,
     FaMapMarkerAlt,
-    FaMicrochip,
     FaNetworkWired,
     FaFileInvoice,
-    FaCommentAlt
+    FaCommentAlt,
+    FaBarcode
 } from "react-icons/fa";
 import api from "@/api/apiConfig";
 import dayjs from "dayjs";
@@ -18,7 +18,7 @@ import utc from "dayjs/plugin/utc";
 import { toast } from 'react-hot-toast';
 dayjs.extend(utc);
 
-const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
+const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     const parseDate = (dateVal) => {
         if (!dateVal) return "";
         if (!isNaN(dateVal) && !isNaN(parseFloat(dateVal))) {
@@ -41,35 +41,17 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     const [offices, setOffices] = useState([]);
 
     const [formData, setFormData] = useState({
-        nombre_equipo: "",
+        nombre_impresora: "",
         nombre_usuario: "",
-        nombre_responsable: "",
         ubicacion: "",
         modelo: "",
         ip: "",
-        estado: "Licenciado",
-        operativo: "",
+        operativo: "SI",
         sede: "",
         unidad: "",
-        tipo_equipo: "",
         marca: "",
         serie: "",
         codigo_adl: "",
-        anydesk: "",
-        sistema_operativo: "",
-        office: "",
-        ram: "",
-        procesador: "",
-        disco_duro: "",
-        correo: "",
-        password: "",
-        proveedor: "",
-        n_factura: "",
-        fecha_factura: "",
-        valor_neto: "",
-        frecuencia_mantencion: "6 Meses",
-        fecha_adquisicion: "",
-        fecha_recepcion: "",
         observaciones: ""
     });
 
@@ -83,7 +65,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                     api.get("/seccion"),
                     api.get("/sede"),
                     api.get("/tipo-equipo"),
-                    api.get("/marca"),
+                    api.get("/marca-impresora"),
                     api.get("/ubicacion"),
                     api.get("/ram"),
                     api.get("/almacenamiento"),
@@ -112,20 +94,13 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
         if (initialData) {
             setFormData({
-                ...initialData,
-                estado: "Licenciado",
-                fecha_adquisicion: initialData.fecha_adquisicion ? parseDate(initialData.fecha_adquisicion).format("YYYY-MM-DD") : "",
-                fecha_recepcion: initialData.fecha_recepcion ? parseDate(initialData.fecha_recepcion).format("YYYY-MM-DD") : "",
-                fecha_factura: initialData.fecha_factura ? parseDate(initialData.fecha_factura).format("YYYY-MM-DD") : ""
+                ...initialData
             });
         } else {
             setFormData({
-                nombre_equipo: "", nombre_usuario: "", nombre_responsable: "", ubicacion: "", modelo: "",
-                ip: "", estado: "Licenciado", operativo: "", sede: "", unidad: "", tipo_equipo: "", marca: "",
-                serie: "", codigo_adl: "", anydesk: "", sistema_operativo: "",
-                office: "", ram: "", procesador: "", disco_duro: "", correo: "", password: "",
-                proveedor: "", n_factura: "", fecha_factura: "", valor_neto: "", frecuencia_mantencion: "6 Meses",
-                fecha_adquisicion: "", fecha_recepcion: "", observaciones: ""
+                nombre_impresora: "", nombre_usuario: "", ubicacion: "", modelo: "",
+                ip: "", operativo: "SI", sede: "", unidad: "", marca: "",
+                serie: "", codigo_adl: "", observaciones: ""
             });
         }
     }, [initialData, isOpen]);
@@ -137,12 +112,8 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
     const validateForm = () => {
         // Required fields
-        if (!formData.nombre_equipo?.trim()) {
-            toast.error('El nombre del equipo es obligatorio');
-            return false;
-        }
-        if (!formData.tipo_equipo) {
-            toast.error('El tipo de equipo es obligatorio');
+        if (!formData.nombre_impresora?.trim()) {
+            toast.error('El nombre de la impresora es obligatorio');
             return false;
         }
         if (!formData.marca) {
@@ -164,15 +135,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
         // Validate emails if any exist (check internal state of EmailTagsInput might be tricky, 
         // but we can check the string value against regex here too for safety)
-        if (formData.correo) {
-            const emails = formData.correo.split(/[\/,]+/).map(e => e.trim()).filter(Boolean);
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const invalidEmails = emails.filter(email => !emailRegex.test(email));
-            if (invalidEmails.length > 0) {
-                toast.error(`Correos inválidos: ${invalidEmails.join(', ')}`);
-                return false;
-            }
-        }
+
 
         return true;
     };
@@ -191,15 +154,15 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-lg text-white shadow-sm ${initialData ? 'bg-amber-500' : 'bg-blue-600'}`}>
-                            {initialData ? <FaDesktop size={20} /> : <FaPlus size={20} />}
+                        <div className={`p-3 rounded-lg text-white shadow-sm ${initialData ? 'bg-purple-500' : 'bg-purple-600'}`}>
+                            {initialData ? <FaPrint size={20} /> : <FaPlus size={20} />}
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                                {initialData ? "Editar Equipo" : "Nuevo Equipo"}
+                                {initialData ? "Editar Impresora / Escáner" : "Nueva Impresora / Escáner"}
                             </h3>
                             <p className="text-xs text-gray-500 mt-1">
-                                {initialData ? `ID: #${initialData.id_inventario} - ${initialData.nombre_equipo}` : "Complete el formulario para registrar un nuevo equipo"}
+                                {initialData ? `ID: #${initialData.id_impresora} - ${initialData.nombre_impresora}` : "Complete el formulario para registrar un nuevo equipo"}
                             </p>
                         </div>
                     </div>
@@ -213,96 +176,42 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
                 {/* Form Body */}
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 bg-white scrollbar-thin scrollbar-thumb-gray-200" noValidate>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Full Width Column */}
+                    <div className="col-span-1 lg:col-span-12 space-y-8">
 
-                        {/* Left Column */}
-                        <div className="col-span-1 lg:col-span-8 space-y-8">
+                        {/* General Info */}
+                        <div>
+                            <SectionHeader title="Datos Técnicos y Ubicación" icon={FaMapMarkerAlt} />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <InputGroup label="Nombre Impresora / Escáner" name="nombre_impresora" value={formData.nombre_impresora} onChange={handleChange} />
+                                <SelectGroup label="Marca" name="marca" value={formData.marca} onChange={handleChange} options={marcas} valueKey="nombre_marca" labelKey="nombre_marca" />
+                                <InputGroup label="Modelo" name="modelo" value={formData.modelo} onChange={handleChange} />
 
-                            {/* General Info */}
-                            <div>
-                                <SectionHeader title="Información General y Ubicación" icon={FaMapMarkerAlt} />
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <InputGroup label="Nombre Equipo" name="nombre_equipo" value={formData.nombre_equipo} onChange={handleChange} />
-                                    <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
-                                    <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }, { id: 'ROBADO', label: 'ROBADO' }]} valueKey="id" labelKey="label" />
+                                <InputGroup label="Dirección IP" name="ip" value={formData.ip} onChange={handleChange} className="font-mono" />
+                                <InputGroup label="N° Serie" name="serie" value={formData.serie} onChange={handleChange} className="uppercase font-mono" />
+                                <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
 
-                                    <InputGroup label="Estado" name="estado" value={formData.estado} readOnly={true} onChange={() => { }} />
+                                <SelectGroup label="Sede" name="sede" value={formData.sede} onChange={handleChange} options={sedes} valueKey="nombre_lugaranalisis" labelKey="nombre_lugaranalisis" />
+                                <SelectGroup label="Unidad / Sección" name="unidad" value={formData.unidad} onChange={handleChange} options={secciones} valueKey="nombre_seccion" labelKey="nombre_seccion" />
+                                <SelectGroup label="Ubicación Física" name="ubicacion" value={formData.ubicacion} onChange={handleChange} options={ubicaciones} valueKey="nombre_ubicacion" labelKey="nombre_ubicacion" />
 
-                                    <SelectGroup label="Tipo Equipo" name="tipo_equipo" value={formData.tipo_equipo} onChange={handleChange} options={tiposEquipo} valueKey="nombre_tipoequipo" labelKey="nombre_tipoequipo" />
-                                    <SelectGroup label="Marca" name="marca" value={formData.marca} onChange={handleChange} options={marcas} valueKey="nombre_marca" labelKey="nombre_marca" />
-                                    <InputGroup label="Modelo" name="modelo" value={formData.modelo} onChange={handleChange} />
-
-                                    <SelectGroup label="Sede" name="sede" value={formData.sede} onChange={handleChange} options={sedes} valueKey="nombre_lugaranalisis" labelKey="nombre_lugaranalisis" />
-                                    <SelectGroup label="Unidad / Sección" name="unidad" value={formData.unidad} onChange={handleChange} options={secciones} valueKey="nombre_seccion" labelKey="nombre_seccion" />
-                                    <SelectGroup label="Ubicación Física" name="ubicacion" value={formData.ubicacion} onChange={handleChange} options={ubicaciones} valueKey="nombre_ubicacion" labelKey="nombre_ubicacion" />
-
-                                    <InputGroup label="Usuario Asignado" name="nombre_usuario" value={formData.nombre_usuario} onChange={handleChange} />
-                                    <InputGroup label="Responsable" name="nombre_responsable" value={formData.nombre_responsable} onChange={handleChange} />
-                                    <InputGroup label="Serie" name="serie" value={formData.serie} onChange={handleChange} className="uppercase font-mono" />
-                                </div>
-                            </div>
-
-                            {/* Hardware & Software */}
-                            <div>
-                                <SectionHeader title="Hardware y Especificaciones" icon={FaMicrochip} />
-                                <div className="p-5 bg-gray-50 rounded-xl border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <InputGroup label="Procesador" name="procesador" value={formData.procesador} onChange={handleChange} />
-                                    <SelectGroup label="RAM" name="ram" value={formData.ram} onChange={handleChange} options={rams.map(r => ({ val: r.capacidad, lbl: `${r.capacidad} GB` }))} valueKey="val" labelKey="lbl" />
-                                    <SelectGroup label="Disco Duro" name="disco_duro" value={formData.disco_duro} onChange={handleChange} options={almacenamientos} valueKey="almacenamiento" labelKey="almacenamiento" />
-
-                                    <SelectGroup label="Sistema Operativo" name="sistema_operativo" value={formData.sistema_operativo} onChange={handleChange} options={sos} valueKey="so" labelKey="so" />
-                                    <SelectGroup label="Office" name="office" value={formData.office} onChange={handleChange} options={offices} valueKey="office" labelKey="office" />
-                                    <SelectGroup label="Licencia Windows" name="licencia_windows" value={formData.licencia_windows} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }]} valueKey="id" labelKey="label" />
-                                </div>
-                            </div>
-
-                            {/* Network */}
-                            <div>
-                                <SectionHeader title="Red y Conectividad" icon={FaNetworkWired} />
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <InputGroup label="Dirección IP" name="ip" value={formData.ip} onChange={handleChange} className="font-mono" />
-                                    <InputGroup label="AnyDesk ID" name="anydesk" value={formData.anydesk} onChange={handleChange} className="font-mono" />
-                                    <EmailTagsInput label="Correo Asociado" value={formData.correo} onChange={handleChange} />
-                                    <InputGroup label="Password Equipo" name="password" value={formData.password} onChange={handleChange} />
-                                </div>
+                                <InputGroup label="Usuario / Responsable" name="nombre_usuario" value={formData.nombre_usuario} onChange={handleChange} />
+                                <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }, { id: 'ROBADO', label: 'ROBADO' }]} valueKey="id" labelKey="label" />
                             </div>
                         </div>
 
-                        {/* Right Column */}
-                        <div className="col-span-1 lg:col-span-4 space-y-8 lg:pl-8 lg:border-l border-gray-100">
-
-                            {/* Admin */}
-                            <div>
-                                <SectionHeader title="Datos Administrativos" icon={FaFileInvoice} />
-                                <div className="space-y-4">
-                                    <InputGroup label="Proveedor" name="proveedor" value={formData.proveedor} onChange={handleChange} />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <InputGroup label="N° Factura" name="n_factura" value={formData.n_factura} onChange={handleChange} />
-                                        <InputGroup label="Valor Neto" name="valor_neto" value={formData.valor_neto} onChange={handleChange} />
-                                    </div>
-                                    <InputGroup label="Fecha Factura" name="fecha_factura" type="date" value={formData.fecha_factura} onChange={handleChange} />
-                                    <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 space-y-4">
-                                        <InputGroup label="Fecha Adquisición" name="fecha_adquisicion" type="date" value={formData.fecha_adquisicion} onChange={handleChange} />
-                                        <InputGroup label="Fecha Recepción" name="fecha_recepcion" type="date" value={formData.fecha_recepcion} onChange={handleChange} />
-                                    </div>
-                                    <InputGroup label="Frec. Mantención" name="frecuencia_mantencion" value="6 Meses" readOnly={true} onChange={() => { }} />
-                                </div>
-                            </div>
-
-                            {/* Observations */}
-                            <div>
-                                <SectionHeader title="Observaciones" icon={FaCommentAlt} />
-                                <textarea
-                                    name="observaciones"
-                                    value={formData.observaciones || ""}
-                                    onChange={handleChange}
-                                    rows="4"
-                                    className="w-full px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all outline-none text-sm text-gray-700 leading-relaxed placeholder-gray-400 resize-none"
-                                    placeholder="Ingrese observaciones o notas adicionales aquí..."
-                                ></textarea>
-                            </div>
+                        {/* Observations */}
+                        <div>
+                            <SectionHeader title="Observaciones" icon={FaCommentAlt} />
+                            <textarea
+                                name="observaciones"
+                                value={formData.observaciones || ""}
+                                onChange={handleChange}
+                                rows="4"
+                                className="w-full px-4 py-3 bg-purple-50/30 border border-purple-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-400/20 focus:border-purple-400 transition-all outline-none text-sm text-gray-700 leading-relaxed placeholder-gray-400 resize-none"
+                                placeholder="Ingrese observaciones o detalles adicionales sobre el equipo..."
+                            ></textarea>
                         </div>
-
                     </div>
                 </form>
 
@@ -316,7 +225,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex items-center gap-2 px-6 py-2.5 text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all font-medium shadow-md"
+                        className="flex items-center gap-2 px-6 py-2.5 text-white bg-purple-600 rounded-lg hover:bg-purple-700 hover:shadow-lg hover:-translate-y-0.5 transition-all font-medium shadow-md"
                     >
                         <FaSave /> {initialData ? "Guardar Cambios" : "Registrar Equipo"}
                     </button>
@@ -329,7 +238,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 // Helper components moved outside
 const SectionHeader = ({ title, icon: Icon }) => (
     <div className="flex items-center gap-2 pb-2 mb-6 border-b border-gray-100 mt-2">
-        {Icon && <Icon className="text-blue-600" size={16} />}
+        {Icon && <Icon className="text-purple-600" size={16} />}
         <h4 className="text-base font-bold text-gray-800">{title}</h4>
     </div>
 );
@@ -444,4 +353,4 @@ const EmailTagsInput = ({ label, value, onChange, className = "" }) => {
 };
 
 
-export default InventarioModal;
+export default ImpresoraModal;
