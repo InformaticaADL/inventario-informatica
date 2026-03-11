@@ -39,6 +39,9 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     const [almacenamientos, setAlmacenamientos] = useState([]);
     const [sos, setSos] = useState([]);
     const [offices, setOffices] = useState([]);
+    
+    // Validations state
+    const [errors, setErrors] = useState({});
 
     const [formData, setFormData] = useState({
         nombre_impresora: "",
@@ -52,7 +55,8 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         marca: "",
         serie: "",
         codigo_adl: "",
-        observaciones: ""
+        observaciones: "",
+        tipo: "Impresora"
     });
 
     useEffect(() => {
@@ -100,7 +104,7 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             setFormData({
                 nombre_impresora: "", nombre_usuario: "", ubicacion: "", modelo: "",
                 ip: "", operativo: "SI", sede: "", unidad: "", marca: "",
-                serie: "", codigo_adl: "", observaciones: ""
+                serie: "", codigo_adl: "", observaciones: "", tipo: "Impresora"
             });
         }
     }, [initialData, isOpen]);
@@ -111,31 +115,23 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     };
 
     const validateForm = () => {
+        const newErrors = {};
+        
         // Required fields
-        if (!formData.nombre_impresora?.trim()) {
-            toast.error('El nombre de la impresora es obligatorio');
-            return false;
-        }
-        if (!formData.marca) {
-            toast.error('La marca es obligatoria');
-            return false;
-        }
-        if (!formData.sede) {
-            toast.error('La sede es obligatoria');
-            return false;
-        }
-        if (!formData.unidad) {
-            toast.error('La unidad/sección es obligatoria');
-            return false;
-        }
-        if (!formData.ubicacion) {
-            toast.error('La ubicación física es obligatoria');
-            return false;
-        }
+        if (!formData.nombre_impresora?.trim()) newErrors.nombre_impresora = true;
+        if (!formData.marca) newErrors.marca = true;
+        if (!formData.modelo?.trim()) newErrors.modelo = true;
+        if (!formData.operativo) newErrors.operativo = true;
+        if (!formData.sede) newErrors.sede = true;
+        if (!formData.unidad) newErrors.unidad = true;
+        if (!formData.ubicacion) newErrors.ubicacion = true;
 
-        // Validate emails if any exist (check internal state of EmailTagsInput might be tricky, 
-        // but we can check the string value against regex here too for safety)
+        setErrors(newErrors);
 
+        if (Object.keys(newErrors).length > 0) {
+            toast.error('Por favor, complete todos los campos obligatorios');
+            return false;
+        }
 
         return true;
     };
@@ -183,20 +179,21 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                         <div>
                             <SectionHeader title="Datos Técnicos y Ubicación" icon={FaMapMarkerAlt} />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                <InputGroup label="Nombre Impresora / Escáner" name="nombre_impresora" value={formData.nombre_impresora} onChange={handleChange} />
-                                <SelectGroup label="Marca" name="marca" value={formData.marca} onChange={handleChange} options={marcas} valueKey="nombre_marca" labelKey="nombre_marca" />
-                                <InputGroup label="Modelo" name="modelo" value={formData.modelo} onChange={handleChange} />
+                                <SelectGroup label="Tipo de Equipo" name="tipo" value={formData.tipo} onChange={handleChange} options={[{ id: 'Impresora', label: 'Impresora' }, { id: 'Escáner', label: 'Escáner' }]} valueKey="id" labelKey="label" required />
+                                <InputGroup label="Nombre Impresora / Escáner" name="nombre_impresora" value={formData.nombre_impresora} onChange={handleChange} required error={errors.nombre_impresora} />
+                                <SelectGroup label="Marca" name="marca" value={formData.marca} onChange={handleChange} options={marcas} valueKey="nombre_marca" labelKey="nombre_marca" required error={errors.marca} />
+                                <InputGroup label="Modelo" name="modelo" value={formData.modelo} onChange={handleChange} required error={errors.modelo} />
 
                                 <InputGroup label="Dirección IP" name="ip" value={formData.ip} onChange={handleChange} className="font-mono" />
                                 <InputGroup label="N° Serie" name="serie" value={formData.serie} onChange={handleChange} className="uppercase font-mono" />
                                 <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
 
-                                <SelectGroup label="Sede" name="sede" value={formData.sede} onChange={handleChange} options={sedes} valueKey="nombre_lugaranalisis" labelKey="nombre_lugaranalisis" />
-                                <SelectGroup label="Unidad / Sección" name="unidad" value={formData.unidad} onChange={handleChange} options={secciones} valueKey="nombre_seccion" labelKey="nombre_seccion" />
-                                <SelectGroup label="Ubicación Física" name="ubicacion" value={formData.ubicacion} onChange={handleChange} options={ubicaciones} valueKey="nombre_ubicacion" labelKey="nombre_ubicacion" />
+                                <SelectGroup label="Sede" name="sede" value={formData.sede} onChange={handleChange} options={sedes} valueKey="nombre_lugaranalisis" labelKey="nombre_lugaranalisis" required error={errors.sede} />
+                                <SelectGroup label="Unidad / Sección" name="unidad" value={formData.unidad} onChange={handleChange} options={secciones} valueKey="nombre_seccion" labelKey="nombre_seccion" required error={errors.unidad} />
+                                <SelectGroup label="Ubicación Física" name="ubicacion" value={formData.ubicacion} onChange={handleChange} options={ubicaciones} valueKey="nombre_ubicacion" labelKey="nombre_ubicacion" required error={errors.ubicacion} />
 
                                 <InputGroup label="Usuario / Responsable" name="nombre_usuario" value={formData.nombre_usuario} onChange={handleChange} />
-                                <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }, { id: 'ROBADO', label: 'ROBADO' }]} valueKey="id" labelKey="label" />
+                                <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }, { id: 'ROBADO', label: 'ROBADO' }]} valueKey="id" labelKey="label" required error={errors.operativo} />
                             </div>
                         </div>
 
@@ -243,30 +240,37 @@ const SectionHeader = ({ title, icon: Icon }) => (
     </div>
 );
 
-const InputGroup = ({ label, name, type = "text", value, onChange, placeholder, className = "", ...props }) => (
+const InputGroup = ({ label, name, type = "text", value, onChange, placeholder, className = "", required, error, ...props }) => (
     <div className={className}>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
+        <label className={`block text-xs font-bold uppercase tracking-wide mb-1.5 ${error ? 'text-red-500' : 'text-gray-500'}`}>
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
         <input
             type={type}
             name={name}
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            className={`w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium placeholder-gray-400 ${props.readOnly ? 'opacity-70 cursor-not-allowed bg-gray-100' : ''}`}
+            className={`w-full px-3 py-2 bg-gray-50 border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'} rounded-lg focus:bg-white focus:ring-2 transition-all outline-none text-sm text-gray-700 font-medium placeholder-gray-400 ${props.readOnly ? 'opacity-70 cursor-not-allowed bg-gray-100' : ''}`}
             {...props}
         />
+        {error && <p className="text-red-500 text-xs mt-1">Este campo es obligatorio</p>}
     </div>
 );
 
-const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey, className = "" }) => (
+const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey, className = "", required, error }) => (
     <div className={className}>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
+        <label className={`block text-xs font-bold uppercase tracking-wide mb-1.5 ${error ? 'text-red-500' : 'text-gray-500'}`}>
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
         <div className="relative">
             <select
                 name={name}
                 value={value}
                 onChange={onChange}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-700 font-medium appearance-none cursor-pointer"
+                className={`w-full px-3 py-2 bg-gray-50 border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'} rounded-lg focus:bg-white focus:ring-2 transition-all outline-none text-sm text-gray-700 font-medium appearance-none cursor-pointer`}
             >
                 <option value="">Seleccionar...</option>
                 {options.map((opt, idx) => (
@@ -275,10 +279,11 @@ const SelectGroup = ({ label, name, value, onChange, options, valueKey, labelKey
                     </option>
                 ))}
             </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
+            <div className={`absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none ${error ? 'text-red-500' : 'text-gray-400'}`}>
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
             </div>
         </div>
+        {error && <p className="text-red-500 text-xs mt-1">Este campo es obligatorio</p>}
     </div>
 );
 

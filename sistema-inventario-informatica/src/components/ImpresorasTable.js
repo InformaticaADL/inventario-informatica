@@ -16,6 +16,7 @@ const ImpresorasTable = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [operativoFilter, setOperativoFilter] = useState("ALL"); // ALL, SI, NO, ROBADO
+    const [tipoFilter, setTipoFilter] = useState("ALL"); // ALL, Impresora, Escáner
     const [sedeFilter, setSedeFilter] = useState("ALL");
     const [seccionFilter, setSeccionFilter] = useState("ALL");
     const [soFilter, setSoFilter] = useState("ALL");
@@ -93,6 +94,14 @@ const ImpresorasTable = () => {
             filtered = filtered.filter((item) => {
                 const op = item.operativo ? String(item.operativo).toUpperCase() : "NO";
                 return op === operativoFilter;
+            });
+        }
+
+        // Tipo Filter
+        if (tipoFilter !== "ALL" && excludeKey !== "tipo") {
+            filtered = filtered.filter((item) => {
+                const tipo = item.tipo || "Impresora";
+                return tipo === tipoFilter;
             });
         }
 
@@ -266,8 +275,6 @@ const ImpresorasTable = () => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
             <div className="flex flex-col md:flex-row items-center mb-6 gap-4">
-                <h2 className="text-1xl font-bold text-gray-800 mr-auto md:mr-4">Listado de Impresoras y Escáneres</h2>
-
                 <div className="flex flex-col md:flex-row gap-2 items-center flex-wrap">
                     {/* Status Filters */}
                     <div className="flex bg-gray-100 p-1 rounded-lg">
@@ -290,6 +297,17 @@ const ImpresorasTable = () => {
                             </button>
                         ))}
                     </div>
+
+                    {/* Tipo Filter */}
+                    <select
+                        value={tipoFilter}
+                        onChange={(e) => { setTipoFilter(e.target.value); setCurrentPage(1); }}
+                        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                    >
+                        <option value="ALL">Todos los Tipos</option>
+                        <option value="Impresora">Impresoras</option>
+                        <option value="Escáner">Escáneres</option>
+                    </select>
 
                     {/* Sede Filter */}
                     <select

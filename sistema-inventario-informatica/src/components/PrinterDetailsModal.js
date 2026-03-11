@@ -22,10 +22,10 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                                Detalle de Impresoras
+                                Detalle de Impresoras y Escáneres
                             </h3>
                             <p className="text-sm text-gray-500 mt-1">
-                                {printerItems.length} impresoras contabilizadas
+                                {printerItems.length} equipos contabilizados
                             </p>
                         </div>
                     </div>
@@ -93,7 +93,7 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-between items-center">
                     <div className="text-sm text-gray-500">
-                        * Listado de todas las impresoras en las oficinas.
+                        * Listado de todas las impresoras y escáneres en las oficinas.
                     </div>
                     <div className="flex items-center gap-4">
                         <button

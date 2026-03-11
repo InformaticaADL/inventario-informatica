@@ -81,6 +81,7 @@ const ImpresoraDetailsModal = ({ isOpen, onClose, data }) => {
                         <div>
                             <SectionHeader title="Especificaciones Técnicas" icon={FaInfoCircle} />
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-5 bg-purple-50/20 rounded-xl border border-purple-100">
+                                <DetailItem label="Tipo de Equipo" value={data.tipo || "Impresora"} />
                                 <DetailItem label="Marca" value={data.marca} />
                                 <DetailItem label="Modelo" value={data.modelo} />
                                 <DetailItem label="N° Serie" value={data.serie} isCode />

@@ -51,13 +51,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 // KPI Card Component
 const KPICard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-        <div className="flex items-start justify-between">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full flex flex-col justify-center">
+        <div className="flex items-start justify-between gap-4">
             <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{title}</p>
+                <p className="text-xs lg:text-sm font-medium text-gray-500 uppercase tracking-wide leading-tight">{title}</p>
                 <h3 className="text-2xl font-bold text-gray-900 mt-2">{value}</h3>
             </div>
-            <div className={`p-3 rounded-lg ${bgClass}`}>
+            <div className={`p-3 rounded-lg ${bgClass} shrink-0`}>
                 <Icon className={colorClass} size={24} />
             </div>
         </div>
@@ -301,15 +301,17 @@ const MetricsDashboard = () => {
                 </div>
 
                 {/* KPI Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <KPICard
-                        title="Total Equipos"
-                        value={totalEquipos}
-                        icon={FaDesktop}
-                        bgClass="bg-blue-50"
-                        colorClass="text-blue-600"
-                    />
-                    <div onClick={() => setShowActiveModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 items-stretch">
+                    <div className="h-full">
+                        <KPICard
+                            title="Total Equipos"
+                            value={totalEquipos}
+                            icon={FaDesktop}
+                            bgClass="bg-blue-50"
+                            colorClass="text-blue-600"
+                        />
+                    </div>
+                    <div onClick={() => setShowActiveModal(true)} className="cursor-pointer transition-transform hover:scale-105 h-full">
                         <KPICard
                             title="Equipos Activos"
                             value={activos}
@@ -318,7 +320,7 @@ const MetricsDashboard = () => {
                             colorClass="text-emerald-600"
                         />
                     </div>
-                    <div onClick={() => setShowInactiveModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                    <div onClick={() => setShowInactiveModal(true)} className="cursor-pointer transition-transform hover:scale-105 h-full">
                         <KPICard
                             title="Equipos Inactivos"
                             value={inactivos}
@@ -327,7 +329,7 @@ const MetricsDashboard = () => {
                             colorClass="text-red-600"
                         />
                     </div>
-                    <div onClick={() => setShowRobadoModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                    <div onClick={() => setShowRobadoModal(true)} className="cursor-pointer transition-transform hover:scale-105 h-full">
                         <KPICard
                             title="Equipos Robados"
                             value={robados}
@@ -336,16 +338,16 @@ const MetricsDashboard = () => {
                             colorClass="text-orange-600"
                         />
                     </div>
-                    <div onClick={() => setShowPrinterModal(true)} className="cursor-pointer transition-transform hover:scale-105">
+                    <div onClick={() => setShowPrinterModal(true)} className="cursor-pointer transition-transform hover:scale-105 h-full">
                         <KPICard
-                            title="Total Impresoras"
+                            title="Total Impresoras y Escáneres"
                             value={impresoras}
                             icon={FaPrint}
                             bgClass="bg-purple-50"
                             colorClass="text-purple-600"
                         />
                     </div>
-                    <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105 lg:col-span-3">
+                    <div onClick={() => setShowValueModal(true)} className="cursor-pointer transition-transform hover:scale-105 lg:col-span-3 h-full">
                         <KPICard
                             title="Valor Estimado Total"
                             value={totalValor > 0 ? formattedValor : "N/A"}

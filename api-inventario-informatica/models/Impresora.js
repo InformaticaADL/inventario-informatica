@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        tipo: {
+            type: DataTypes.STRING,
+            defaultValue: 'Impresora',
+            allowNull: true,
+        },
         marca: {
             type: DataTypes.STRING,
             allowNull: true,
