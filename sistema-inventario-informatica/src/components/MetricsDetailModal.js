@@ -285,7 +285,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                 {/* Procesador Stats */}
                                 <div className="flex flex-col bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2 shrink-0">
-                                        <FaDesktop className="text-indigo-500" /> Procesador (Detallado)
+                                        <FaDesktop className="text-indigo-500" /> Procesador
                                     </h4>
                                     <div className="space-y-3 pr-2">
                                 {Object.entries(
@@ -343,7 +343,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                 {/* RAM Stats */}
                                 <div className="flex flex-col bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2 shrink-0">
-                                        <FaCheckCircle className="text-emerald-500" /> Memoria RAM Principal
+                                        <FaCheckCircle className="text-emerald-500" /> Memoria RAM 
                                     </h4>
                                     <div className="space-y-3 pr-2">
                                 {Object.entries(
@@ -377,7 +377,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
                                 {/* Almacenamiento Stats */}
                                 <div className="flex flex-col bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2 shrink-0">
-                                        <FaWindows className="text-amber-500" /> Almacenamiento Principal
+                                        <FaWindows className="text-amber-500" /> Almacenamiento
                                     </h4>
                                     <div className="space-y-3 pr-2">
                                 {Object.entries(
