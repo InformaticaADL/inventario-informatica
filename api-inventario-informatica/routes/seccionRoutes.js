@@ -1,8 +1,12 @@
 const express = require("express");
-const { getAllSecciones } = require("../controllers/seccionController");
+const seccionController = require("../controllers/seccionController");
+const protectRouteINF = require("../middlewares/protectRouteINF");
 
 const router = express.Router();
 
-router.get("/", getAllSecciones);
+router.get("/", seccionController.getAllSecciones);
+router.post("/", protectRouteINF, seccionController.createSeccion);
+router.put("/:id", protectRouteINF, seccionController.updateSeccion);
+router.delete("/:id", protectRouteINF, seccionController.deleteSeccion);
 
 module.exports = router;
