@@ -1,33 +1,28 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaSave, FaChevronLeft, FaChevronRight, FaBriefcase, FaLayerGroup } from 'react-icons/fa';
 import api from '@/api/apiConfig';
 import { toast } from 'react-hot-toast';
 
-const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, singularTitle }) => {
+const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitle }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
+    const [detailItem, setDetailItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [formData, setFormData] = useState({});
 
-    // Pagination state
+    // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // Delete confirmation state
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState(null);
-
     useEffect(() => {
         fetchData();
-        setCurrentPage(1); // Reset page on endpoint change
+        setCurrentPage(1);
     }, [endpoint]);
-
-    useEffect(() => {
-        setCurrentPage(1); // Reset page on search
-    }, [searchTerm]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -45,12 +40,23 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
     const handleOpenModal = (item = null) => {
         if (item) {
             setEditingItem(item);
-            setFormData(item);
+            const initialData = {};
+            fields.forEach(f => {
+                if (f.plural) {
+                    const pluralKey = f.pluralKey || (f.name.startsWith('id_') ? f.name.replace('id_', '') + 's' : f.name + 's');
+                    const actualPluralKey = (f.name === 'id_seccion' && !f.pluralKey) ? 'secciones' : pluralKey;
+                    
+                    if (item[actualPluralKey]) {
+                        initialData[f.name] = item[actualPluralKey].map(obj => obj[f.idField || f.name] || obj.id);
+                    }
+                } else {
+                    initialData[f.name] = item[f.name];
+                }
+            });
+            setFormData(initialData);
         } else {
             setEditingItem(null);
-            const initialData = {};
-            fields.forEach(f => initialData[f.name] = f.defaultValue || "");
-            setFormData(initialData);
+            setFormData({});
         }
         setIsModalOpen(true);
     };
@@ -61,15 +67,27 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
         setFormData({});
     };
 
+    const handleOpenDetail = (item) => {
+        setDetailItem(item);
+    };
+
+    const handleCloseDetail = () => {
+        setDetailItem(null);
+    };
+
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, multiple } = e.target;
+        if (multiple) {
+            const values = Array.from(e.target.selectedOptions, option => option.value);
+            setFormData(prev => ({ ...prev, [name]: values }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Basic validation
         for (const field of fields) {
             if (field.required && !formData[field.name]) {
                 toast.error(`${field.label} es obligatorio`);
@@ -121,7 +139,6 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
         )
     );
 
-    // Pagination logic
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -186,23 +203,74 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentItems.length > 0 ? (
                             currentItems.map((item) => (
-                                <tr key={item[idField]} className="hover:bg-blue-50/50 transition-colors">
-                                    {fields.map(field => (
-                                        <td key={field.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            {item[field.name] || '-'}
-                                        </td>
-                                    ))}
+                                <tr 
+                                    key={item[idField]} 
+                                    onClick={() => handleOpenDetail(item)}
+                                    className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                                >
+                                    {fields.map((field, idx) => {
+                                        let cellContent;
+                                        if (field.type === 'select' && field.options) {
+                                            if (field.plural) {
+                                                const pluralKey = field.pluralKey || (field.name.startsWith('id_') ? field.name.replace('id_', '') + 's' : field.name + 's');
+                                                const actualPluralKey = (field.name === 'id_seccion' && !field.pluralKey) ? 'secciones' : pluralKey;
+                                                const values = item[actualPluralKey] || [];
+                                                
+                                                if (values.length > 0) {
+                                                    const maxVisible = 2;
+                                                    cellContent = (
+                                                        <div className="flex flex-wrap gap-1 max-w-xs">
+                                                            {values.slice(0, maxVisible).map((v, idx) => (
+                                                                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
+                                                                    {v.nombre_seccion || v.nombre_categoria || v.label || v.nombre}
+                                                                </span>
+                                                            ))}
+                                                            {values.length > maxVisible && (
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-500 border border-gray-100 uppercase" title={values.slice(maxVisible).map(v => v.nombre_seccion || v.nombre_categoria || v.label || v.nombre).join(', ')}>
+                                                                    +{values.length - maxVisible}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    cellContent = <span className="text-gray-400 italic">Sin asignar</span>;
+                                                }
+                                            } else {
+                                                const option = field.options.find(opt => String(opt.id) === String(item[field.name]));
+                                                cellContent = option ? option.label : <span className="text-gray-400 italic">-</span>;
+                                            }
+                                        } else {
+                                            cellContent = item[field.name] || <span className="text-gray-400 italic">-</span>;
+                                        }
+
+                                        const isFirstField = idx === 0;
+
+                                        return (
+                                            <td 
+                                                key={field.name} 
+                                                className={`px-6 py-4 text-sm text-gray-700 ${isFirstField ? 'group-hover:text-blue-600 transition-colors font-medium' : ''}`}
+                                            >
+                                                {cellContent}
+                                            </td>
+                                        );
+                                    })}
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end gap-2">
                                             <button
-                                                onClick={() => handleOpenModal(item)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleOpenModal(item);
+                                                }}
                                                 className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-2 rounded-lg transition-colors"
                                                 title="Editar"
                                             >
                                                 <FaEdit size={14} />
                                             </button>
                                             <button
-                                                onClick={() => confirmDelete(item[idField])}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    confirmDelete(item[idField]);
+                                                }}
                                                 className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-lg transition-colors"
                                                 title="Eliminar"
                                             >
@@ -214,8 +282,8 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={fields.length + 1} className="px-6 py-12 text-center text-gray-500 text-sm">
-                                    No se encontraron resultados
+                                <td colSpan={fields.length + 1} className="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
+                                    No se encontraron registros de {title.toLowerCase()}.
                                 </td>
                             </tr>
                         )}
@@ -223,13 +291,13 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                 </table>
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination */}
             {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between flex-shrink-0">
-                    <div className="text-sm text-gray-500 font-medium">
-                        Mostrando {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, totalItems)} de {totalItems} registros
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-white flex-shrink-0">
+                    <div className="text-sm text-gray-500">
+                        Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, totalItems)}</span> de <span className="font-medium">{totalItems}</span> resultados
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                         <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
@@ -242,10 +310,9 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                             <FaChevronLeft size={12} />
                         </button>
                         
-                        <div className="flex items-center gap-1">
+                        <div className="flex gap-1 overflow-x-auto max-w-[120px] md:max-w-none no-scrollbar">
                             {[...Array(totalPages)].map((_, i) => {
                                 const pageNum = i + 1;
-                                // Show only current page, 1, last page, and neighbors
                                 if (
                                     pageNum === 1 || 
                                     pageNum === totalPages || 
@@ -255,10 +322,10 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                                         <button
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
-                                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                                                currentPage === pageNum
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-blue-600'
+                                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+                                                currentPage === pageNum 
+                                                ? 'bg-blue-600 text-white shadow-md' 
+                                                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                                             }`}
                                         >
                                             {pageNum}
@@ -311,11 +378,12 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                                     {field.type === 'select' ? (
                                         <select
                                             name={field.name}
-                                            value={formData[field.name] || ""}
+                                            value={formData[field.name] || (field.plural ? [] : "")}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            multiple={field.plural}
+                                            className={`w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${field.plural ? 'h-32' : ''}`}
                                         >
-                                            <option value="">Seleccionar...</option>
+                                            {!field.plural && <option value="">Seleccionar...</option>}
                                             {field.options.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.label}</option>
                                             ))}
@@ -361,26 +429,118 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale = false, sing
                                 <FaTrash size={24} />
                             </div>
                             <h3 className="text-lg font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
-                            <p className="text-gray-500 text-sm">
+                            <p className="text-gray-500 text-sm mb-6">
                                 Esta acción eliminará permanentemente el registro de <strong>{title}</strong>. 
                                 Esta acción no se puede deshacer.
                             </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteModalOpen(false);
+                                        setItemToDelete(null);
+                                    }}
+                                    className="flex-1 px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all text-sm font-medium"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex p-6 gap-3 bg-gray-50 border-t border-gray-100">
-                            <button
-                                onClick={() => {
-                                    setIsDeleteModalOpen(false);
-                                    setItemToDelete(null);
-                                }}
-                                className="flex-1 px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all text-sm font-medium"
+                    </div>
+                </div>
+            )}
+
+            {/* Detail Modal */}
+            {detailItem && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl animate-fadeIn overflow-hidden border border-gray-100">
+                        <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex items-end">
+                            <button 
+                                onClick={handleCloseDetail} 
+                                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
                             >
-                                Cancelar
+                                <FaTimes size={20} />
                             </button>
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/30 shadow-inner">
+                                    <FaLayerGroup size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white leading-tight">
+                                        {detailItem[fields[0].name]}
+                                    </h3>
+                                    <p className="text-blue-100 text-sm font-medium">Detalles del Registro</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            {fields.map(field => {
+                                if (field.name === fields[0].name) return null;
+
+                                const pluralKey = field.pluralKey || (field.name.startsWith('id_') ? field.name.replace('id_', '') + 's' : field.name + 's');
+                                const actualPluralKey = (field.name === 'id_seccion' && !field.pluralKey) ? 'secciones' : pluralKey;
+                                const isPlural = field.plural;
+                                const values = isPlural ? (detailItem[actualPluralKey] || []) : null;
+
+                                return (
+                                    <div key={field.name} className="space-y-3">
+                                        <div className="flex items-center gap-2 text-gray-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                                {field.label}
+                                                {isPlural && values.length > 0 && (
+                                                    <span className="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full text-[9px]">
+                                                        {values.length}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <div className="h-px flex-1 bg-gray-100"></div>
+                                        </div>
+                                        
+                                        {isPlural ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {values.length > 0 ? values.map((v, idx) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        className="flex items-center gap-2 px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg group hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                                                        <span className="text-sm font-semibold text-blue-800">
+                                                            {v.nombre_seccion || v.nombre_categoria || v.label || v.nombre}
+                                                        </span>
+                                                    </div>
+                                                )) : (
+                                                    <div className="col-span-2 py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-xl text-gray-400 text-sm italic">
+                                                        Sin unidades asociadas
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <span className="text-gray-900 font-semibold">
+                                                    {field.type === 'select' 
+                                                        ? (field.options.find(opt => String(opt.id) === String(detailItem[field.name]))?.label || '-')
+                                                        : (detailItem[field.name] || '-')
+                                                    }
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="px-8 pb-8 pt-2">
                             <button
-                                onClick={handleDelete}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md"
+                                onClick={handleCloseDetail}
+                                className="w-full py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-black/20"
                             >
-                                Eliminar
+                                Entendido
                             </button>
                         </div>
                     </div>

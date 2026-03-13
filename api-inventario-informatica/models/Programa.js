@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
             id_programa: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
+                autoIncrement: true,
                 allowNull: false,
             },
             nombre_programa: {
@@ -20,7 +21,18 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     Programa.associate = (models) => {
-        // No associations needed for now
+        Programa.belongsToMany(models.Seccion, {
+            through: models.ProgramaSecciones,
+            foreignKey: "id_programa",
+            otherKey: "id_seccion",
+            as: "secciones",
+        });
+        Programa.belongsToMany(models.Inventario, {
+            through: "inventario_programas",
+            foreignKey: "id_programa",
+            otherKey: "id_inventario",
+            as: "equipos",
+        });
     };
 
     return Programa;

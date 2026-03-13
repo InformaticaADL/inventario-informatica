@@ -143,5 +143,14 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: true
     });
 
+    Inventario.associate = (models) => {
+        Inventario.belongsToMany(models.Programa, {
+            through: "inventario_programas",
+            foreignKey: "id_inventario",
+            otherKey: "id_programa",
+            as: "programas",
+        });
+    };
+
     return Inventario;
 };

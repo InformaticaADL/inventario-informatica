@@ -1,8 +1,14 @@
-const { Programa } = require("../models");
+const { Programa, Seccion, Inventario } = require("../models");
 
 const getAllProgramas = async (req, res) => {
     try {
         const programas = await Programa.findAll({
+            include: [{
+                model: Seccion,
+                as: 'secciones',
+                attributes: ['id_seccion', 'nombre_seccion'],
+                through: { attributes: [] }
+            }],
             order: [['nombre_programa', 'ASC']]
         });
         res.status(200).json(programas);
@@ -13,16 +19,26 @@ const getAllProgramas = async (req, res) => {
 };
 
 const createPrograma = async (req, res) => {
+    const { nombre_programa, id_seccion } = req.body; 
     try {
-        // Encontrar el ID más alto actual
         const maxId = await Programa.max('id_programa');
         const nextId = (maxId || 0) + 1;
 
         const programa = await Programa.create({
-            ...req.body,
-            id_programa: nextId
+            id_programa: nextId,
+            nombre_programa
         });
-        res.status(201).json(programa);
+
+        if (id_seccion) {
+            const sections = Array.isArray(id_seccion) ? id_seccion : [id_seccion];
+            await programa.setSecciones(sections);
+        }
+
+        const result = await Programa.findByPk(nextId, {
+            include: [{ model: Seccion, as: 'secciones', through: { attributes: [] } }]
+        });
+
+        res.status(201).json(result);
     } catch (error) {
         console.error("Error al crear programa:", error);
         res.status(500).json({ message: "Error al crear el programa", error: error.message });
@@ -31,15 +47,25 @@ const createPrograma = async (req, res) => {
 
 const updatePrograma = async (req, res) => {
     const { id } = req.params;
+    const { nombre_programa, id_seccion } = req.body;
     try {
-        const [updated] = await Programa.update(req.body, {
-            where: { id_programa: id }
-        });
-        if (updated) {
-            const updatedPrograma = await Programa.findOne({ where: { id_programa: id } });
-            return res.status(200).json(updatedPrograma);
+        const programa = await Programa.findByPk(id);
+        if (!programa) throw new Error('Programa no encontrado');
+
+        if (nombre_programa) {
+            await programa.update({ nombre_programa });
         }
-        throw new Error('Programa no encontrado');
+
+        if (id_seccion !== undefined) {
+            const sections = Array.isArray(id_seccion) ? id_seccion : [id_seccion];
+            await programa.setSecciones(sections);
+        }
+
+        const updatedPrograma = await Programa.findByPk(id, {
+            include: [{ model: Seccion, as: 'secciones', through: { attributes: [] } }]
+        });
+        
+        return res.status(200).json(updatedPrograma);
     } catch (error) {
         console.error("Error al actualizar programa:", error);
         res.status(500).json({ message: "Error al actualizar el programa", error: error.message });

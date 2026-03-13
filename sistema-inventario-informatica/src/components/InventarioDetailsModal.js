@@ -1,4 +1,5 @@
 "use client";
+import React, { useState } from "react";
 
 import {
     FaTimes,
@@ -19,7 +20,11 @@ dayjs.extend(utc);
 import { formatCLP } from "@/utils/formatters";
 import { parseCLP } from "@/utils/numberParsers";
 
+import InventarioSoftware from "./InventarioSoftware";
+
 const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
+    const [activeTab, setActiveTab] = useState("specs"); // 'specs' or 'software'
+
     const parseDate = (dateVal) => {
         if (!dateVal) return null;
         if (!isNaN(dateVal) && !isNaN(parseFloat(dateVal))) {
@@ -57,8 +62,6 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
         if (lower.includes("regular")) return "bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs border border-yellow-200";
         return "bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs border border-gray-200";
     };
-
-
 
     // Helper to format currency or simple numbers if needed
     const formatValue = (val) => formatCLP(parseCLP(val));
@@ -100,114 +103,134 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                     </button>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex px-6 border-b border-gray-100 bg-gray-50/50">
+                    <button
+                        onClick={() => setActiveTab("specs")}
+                        className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'specs' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Especificaciones
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("software")}
+                        className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'software' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Software Instalado
+                    </button>
+                </div>
+
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-white scrollbar-thin scrollbar-thumb-gray-200">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {activeTab === 'specs' ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        {/* Left Column: Core Info */}
-                        <div className="col-span-1 lg:col-span-8 space-y-2">
+                            {/* Left Column: Core Info */}
+                            <div className="col-span-1 lg:col-span-8 space-y-2">
 
-                            {/* General & Location */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
-                                <div className="space-y-6">
-                                    <SectionHeader title="Información de Usuario" icon={FaUser} />
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <DetailItem label="Usuario Asignado" value={data.nombre_usuario} />
-                                        <DetailItem label="Responsable" value={data.nombre_responsable} />
+                                {/* General & Location */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
+                                    <div className="space-y-6">
+                                        <SectionHeader title="Información de Usuario" icon={FaUser} />
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <DetailItem label="Usuario Asignado" value={data.nombre_usuario} />
+                                            <DetailItem label="Responsable" value={data.nombre_responsable} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <SectionHeader title="Ubicación" icon={FaMapMarkerAlt} />
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <DetailItem label="Sede" value={data.sede} />
+                                            <DetailItem label="Unidad / Sección" value={data.unidad} />
+                                            <DetailItem label="Ubicación Física" value={data.ubicacion} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-6">
-                                    <SectionHeader title="Ubicación" icon={FaMapMarkerAlt} />
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <DetailItem label="Sede" value={data.sede} />
-                                        <DetailItem label="Unidad / Sección" value={data.unidad} />
-                                        <DetailItem label="Ubicación Física" value={data.ubicacion} />
+
+                                {/* Technical Specs */}
+                                <SectionHeader title="Hardware y Especificaciones" icon={FaMicrochip} />
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                                    <DetailItem label="Tipo de Equipo" value={data.tipo_equipo} />
+                                    <DetailItem label="Marca" value={data.marca} />
+                                    <DetailItem label="Modelo" value={data.modelo} />
+                                    <DetailItem label="Procesador" value={data.procesador} />
+                                    <DetailItem label="Memoria RAM" value={data.ram ? `${data.ram} GB` : null} />
+                                    <DetailItem label="Disco Duro" value={data.disco_duro} />
+                                    <DetailItem label="Sistema Operativo" value={data.sistema_operativo} />
+                                    <DetailItem label="Office" value={data.office} colSpan={2} />
+                                </div>
+
+                                {/* Network Info */}
+                                <SectionHeader title="Red y Conectividad" icon={FaNetworkWired} />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                    <DetailItem label="Dirección IP" value={data.ip} isCode />
+                                    <DetailItem label="AnyDesk ID" value={data.anydesk} isCode />
+                                    <DetailItem label="Código ADL" value={data.codigo_adl} isCode />
+                                    <DetailItem label="Número de Serie" value={data.serie} isCode />
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Correos Asociados</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {data.correo ? (
+                                                data.correo.split(/[\/,]+/).map((email, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm">
+                                                        <span className="text-xs font-medium break-all">{email.trim()}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-400 italic font-medium text-sm">No registrado</span>
+                                            )}
+                                        </div>
                                     </div>
+                                    <DetailItem label="Password Equipo" value={data.password} isCode />
                                 </div>
                             </div>
 
-                            {/* Technical Specs */}
-                            <SectionHeader title="Hardware y Especificaciones" icon={FaMicrochip} />
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 p-5 bg-gray-50 rounded-xl border border-gray-100">
-                                <DetailItem label="Tipo de Equipo" value={data.tipo_equipo} />
-                                <DetailItem label="Marca" value={data.marca} />
-                                <DetailItem label="Modelo" value={data.modelo} />
-                                <DetailItem label="Procesador" value={data.procesador} />
-                                <DetailItem label="Memoria RAM" value={data.ram ? `${data.ram} GB` : null} />
-                                <DetailItem label="Disco Duro" value={data.disco_duro} />
-                                <DetailItem label="Sistema Operativo" value={data.sistema_operativo} />
-                                <DetailItem label="Office" value={data.office} colSpan={2} />
-                            </div>
+                            {/* Right Column: Administrative & Notes */}
+                            <div className="col-span-1 lg:col-span-4 space-y-8 pl-0 lg:pl-8 lg:border-l border-gray-100">
 
-                            {/* Network Info */}
-                            <SectionHeader title="Red y Conectividad" icon={FaNetworkWired} />
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <DetailItem label="Dirección IP" value={data.ip} isCode />
-                                <DetailItem label="AnyDesk ID" value={data.anydesk} isCode />
-                                <DetailItem label="Código ADL" value={data.codigo_adl} isCode />
-                                <DetailItem label="Número de Serie" value={data.serie} isCode />
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Correos Asociados</span>
-                                    <div className="flex flex-wrap gap-2">
-                                        {data.correo ? (
-                                            data.correo.split(/[\/,]+/).map((email, idx) => (
-                                                <div key={idx} className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm">
-                                                    <span className="text-xs font-medium break-all">{email.trim()}</span>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <span className="text-gray-400 italic font-medium text-sm">No registrado</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <DetailItem label="Password Equipo" value={data.password} isCode />
-                            </div>
-                        </div>
-
-                        {/* Right Column: Administrative & Notes */}
-                        <div className="col-span-1 lg:col-span-4 space-y-8 pl-0 lg:pl-8 lg:border-l border-gray-100">
-
-                            <div>
-                                <SectionHeader title="Datos Administrativos" icon={FaFileInvoice} />
-                                <div className="space-y-5">
-                                    <DetailItem
-                                        label="Fecha de Adquisición"
-                                        value={data.fecha_adquisicion ? parseDate(data.fecha_adquisicion).format("DD/MM/YYYY") : null}
-                                        icon={FaCalendarAlt}
-                                    />
-                                    <DetailItem
-                                        label="Fecha de Recepción"
-                                        value={data.fecha_recepcion ? parseDate(data.fecha_recepcion).format("DD/MM/YYYY") : null}
-                                    />
-                                    <DetailItem label="Proveedor" value={data.proveedor} />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <DetailItem label="N° Factura" value={data.n_factura} />
+                                <div>
+                                    <SectionHeader title="Datos Administrativos" icon={FaFileInvoice} />
+                                    <div className="space-y-5">
                                         <DetailItem
-                                            label="Fecha Factura"
-                                            value={data.fecha_factura ? parseDate(data.fecha_factura).format("DD/MM/YYYY") : null}
+                                            label="Fecha de Adquisición"
+                                            value={data.fecha_adquisicion ? parseDate(data.fecha_adquisicion).format("DD/MM/YYYY") : null}
+                                            icon={FaCalendarAlt}
+                                        />
+                                        <DetailItem
+                                            label="Fecha de Recepción"
+                                            value={data.fecha_recepcion ? parseDate(data.fecha_recepcion).format("DD/MM/YYYY") : null}
+                                        />
+                                        <DetailItem label="Proveedor" value={data.proveedor} />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <DetailItem label="N° Factura" value={data.n_factura} />
+                                            <DetailItem
+                                                label="Fecha Factura"
+                                                value={data.fecha_factura ? parseDate(data.fecha_factura).format("DD/MM/YYYY") : null}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <DetailItem label="Valor Net" value={formatValue(data.valor_neto)} />
+                                            <DetailItem label="Frec. Mantención" value={data.frecuencia_mantencion} />
+                                        </div>
+                                        <DetailItem
+                                            label="Estado Operativo"
+                                            value={data.operativo === "SI" ? "Operativo" : data.operativo === "ROBADO" ? "Robado" : "De baja"}
+                                            isStatus={data.operativo === "SI" ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs uppercase font-bold" : data.operativo === "ROBADO" ? "text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 text-xs uppercase font-bold" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-xs uppercase font-bold"}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <DetailItem label="Valor Neto" value={formatValue(data.valor_neto)} />
-                                        <DetailItem label="Frec. Mantención" value={data.frecuencia_mantencion} />
+                                </div>
+
+                                <div>
+                                    <SectionHeader title="Observaciones" icon={FaCommentAlt} />
+                                    <div className="bg-yellow-50/50 p-4 rounded-xl text-gray-700 text-sm leading-relaxed border border-yellow-100 min-h-[120px] shadow-sm">
+                                        {data.observaciones || <span className="text-gray-400 italic">Sin observaciones registradas.</span>}
                                     </div>
-                                    <DetailItem
-                                        label="Estado Operativo"
-                                        value={data.operativo === "SI" ? "Operativo" : data.operativo === "ROBADO" ? "Robado" : "De baja"}
-                                        isStatus={data.operativo === "SI" ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs uppercase font-bold" : data.operativo === "ROBADO" ? "text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 text-xs uppercase font-bold" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-xs uppercase font-bold"}
-                                    />
                                 </div>
-                            </div>
 
-                            <div>
-                                <SectionHeader title="Observaciones" icon={FaCommentAlt} />
-                                <div className="bg-yellow-50/50 p-4 rounded-xl text-gray-700 text-sm leading-relaxed border border-yellow-100 min-h-[120px] shadow-sm">
-                                    {data.observaciones || <span className="text-gray-400 italic">Sin observaciones registradas.</span>}
-                                </div>
                             </div>
-
                         </div>
-                    </div>
+                    ) : (
+                        <InventarioSoftware id_inventario={data.id_inventario} unidad={data.unidad} />
+                    )}
                 </div>
 
                 {/* Footer */}

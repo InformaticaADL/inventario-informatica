@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
         "mae_seccion",
         {
             id_seccion: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.DECIMAL(10, 0),
                 primaryKey: true,
                 allowNull: false,
             },
@@ -33,7 +33,12 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     Seccion.associate = (models) => {
-        // Asociaciones eliminadas
+        Seccion.belongsToMany(models.Programa, {
+            through: models.ProgramaSecciones,
+            foreignKey: "id_seccion",
+            otherKey: "id_programa",
+            as: "programas",
+        });
     };
     return Seccion;
 }
