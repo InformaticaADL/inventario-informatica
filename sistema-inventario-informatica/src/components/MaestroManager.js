@@ -133,11 +133,35 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitl
         }
     };
 
-    const filteredData = data.filter(item => 
-        Object.values(item).some(val => 
-            String(val).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
+    const normalizeString = (str) => {
+        if (!str) return "";
+        return String(str)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    };
+
+    const searchNormalized = normalizeString(searchTerm);
+
+    const filteredData = data.filter(item => {
+        return fields.some(field => {
+            const val = item[field.name];
+            
+            // Handle associated arrays (like secciones)
+            if (field.plural) {
+                const pluralKey = field.pluralKey || (field.name.startsWith('id_') ? field.name.replace('id_', '') + 's' : field.name + 's');
+                const actualPluralKey = (field.name === 'id_seccion' && !field.pluralKey) ? 'secciones' : pluralKey;
+                const items = item[actualPluralKey] || [];
+                return items.some(subItem => {
+                    const subVal = subItem.nombre_seccion || subItem.nombre_categoria || subItem.label || subItem.nombre || "";
+                    return normalizeString(subVal).includes(searchNormalized);
+                });
+            }
+            
+            // Handle simple fields
+            return normalizeString(val).includes(searchNormalized);
+        });
+    });
 
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
