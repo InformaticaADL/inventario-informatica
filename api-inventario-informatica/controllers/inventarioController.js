@@ -5,6 +5,12 @@ const { Op } = require("sequelize");
 const getInventario = async (req, res) => {
     try {
         const data = await Inventario.findAll({
+            include: [{
+                model: Programa,
+                as: 'programas',
+                attributes: ['id_programa', 'nombre_programa'],
+                through: { attributes: [] }
+            }],
             order: [['updatedAt', 'DESC']]
         });
         res.status(200).json(data);

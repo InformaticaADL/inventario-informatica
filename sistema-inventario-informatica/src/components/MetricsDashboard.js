@@ -18,7 +18,8 @@ import {
     FaChartPie,
     FaFileExcel,
     FaBuilding,
-    FaWindows
+    FaWindows,
+    FaCogs
 } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import ValueDetailsModal from './ValueDetailsModal';
@@ -26,8 +27,8 @@ import InactiveDetailsModal from './InactiveDetailsModal';
 import ActiveDetailsModal from './ActiveDetailsModal';
 import RobadoDetailsModal from './RobadoDetailsModal';
 import PrinterDetailsModal from './PrinterDetailsModal';
-import OfficeDetailsModal from './OfficeDetailsModal';
 import MetricsDetailModal from './MetricsDetailModal';
+import ProgramListModal from './ProgramListModal';
 import { useAuth } from '@/hooks/useAuth';
 import { parseCLP } from '@/utils/numberParsers';
 
@@ -73,8 +74,7 @@ const MetricsDashboard = () => {
     const [showActiveModal, setShowActiveModal] = useState(false);
     const [showRobadoModal, setShowRobadoModal] = useState(false);
     const [showPrinterModal, setShowPrinterModal] = useState(false);
-    const [showOfficeModal, setShowOfficeModal] = useState(false);
-    const [selectedOfficeVersion, setSelectedOfficeVersion] = useState(null);
+    const [showProgramModal, setShowProgramModal] = useState(false);
 
     // Generic Modal State
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -187,29 +187,6 @@ const MetricsDashboard = () => {
         value: osCount[key]
     })).sort((a, b) => b.value - a.value);
 
-    // 3. Office Versions
-    const officeCount = data.reduce((acc, item) => {
-        let version = 'Sin Office'; // Default for null/undefined/empty
-
-        if (item.office && item.office.trim() !== '') {
-            const lower = item.office.toLowerCase();
-            if (lower.includes('libre')) version = 'LibreOffice';
-            else if (lower.includes('365')) version = 'Office 365';
-            else if (lower.includes('2019')) version = 'Office 2019';
-            else if (lower.includes('2016')) version = 'Office 2016';
-            else if (lower.includes('2013')) version = 'Office 2013';
-            // Else remains 'Sin Office' -> Catches "Otro Office" cases
-        }
-
-        acc[version] = (acc[version] || 0) + 1;
-        return acc;
-    }, {});
-
-    const officeData = Object.keys(officeCount).map(key => ({
-        name: key,
-        value: officeCount[key]
-    })).sort((a, b) => b.value - a.value);
-
     // 3.5 Windows License Distribution
     const licenseCount = data.reduce((acc, item) => {
         let license = item.licencia_windows ? item.licencia_windows.trim() : 'Sin Información';
@@ -238,6 +215,29 @@ const MetricsDashboard = () => {
     const unitData = Object.keys(unitCount)
         .map(key => ({ name: key, value: unitCount[key] }))
         .sort((a, b) => b.value - a.value);
+
+    // 5.5 Program Distribution
+    const programCount = data.reduce((acc, item) => {
+        if (item.programas && item.programas.length > 0) {
+            item.programas.forEach(p => {
+                const progName = p.nombre_programa;
+                acc[progName] = (acc[progName] || 0) + 1;
+            });
+        }
+        return acc;
+    }, {});
+
+    const programDataFull = Object.keys(programCount).map(key => {
+        const value = programCount[key];
+        const percentage = totalEquipos > 0 ? ((value / totalEquipos) * 100).toFixed(1) : 0;
+        return {
+            name: key,
+            value: value,
+            percentage: Number(percentage)
+        };
+    }).sort((a, b) => b.value - a.value);
+
+    const programData = programDataFull.slice(0, 20); // Top 20 para que no sea infinita
 
     // 5. Brands Logic with Filter
 
@@ -270,27 +270,6 @@ const MetricsDashboard = () => {
         .sort((a, b) => b.value - a.value);
 
 
-
-    // 6. Excel Export Logic (Replicated from OfficeReportTable)
-    const handleExportOffice = () => {
-        try {
-            const dataToExport = data.map(item => ({
-                "Nombre Equipo": item.nombre_equipo,
-                "Sistema Operativo": item.sistema_operativo,
-                "Versión Office": item.office,
-                "Unidad": item.unidad
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Office");
-
-            const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `Reporte_Office_${date}.xlsx`);
-        } catch (error) {
-            console.error("Error exporting excel:", error);
-        }
-    };
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -548,7 +527,7 @@ const MetricsDashboard = () => {
                     </div>
 
                     {/* Brands (Pie Chart) */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                             <div className="flex items-center gap-2">
                                 <FaChartPie className="text-indigo-500" />
@@ -580,22 +559,28 @@ const MetricsDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="h-72">
-                            <ResponsiveContainer width="100%" height={300}>
+                        <div className="h-[450px]">
+                            <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
                                     data={brandData}
                                     layout="vertical"
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
                                     <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} />
-                                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        width={180}
+                                        tick={{ fontSize: 11, fill: '#4b5563' }}
+                                        interval={0}
+                                    />
                                     <Tooltip content={<CustomTooltip />} />
                                     <Bar
                                         dataKey="value"
-                                        fill="#6366f1"
                                         radius={[0, 4, 4, 0]}
                                         name="Cantidad"
+                                        barSize={20}
                                         onClick={(data) => {
                                             if (data && data.name) {
                                                 setDetailModalConfig({
@@ -608,54 +593,8 @@ const MetricsDashboard = () => {
                                             }
                                         }}
                                         cursor="pointer"
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Office Distribution (Vertical Bar) */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <FaDesktop className="text-sky-500" />
-                                <h3 className="text-lg font-bold text-gray-800">Versiones de Office</h3>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                    Total: {totalEquipos}
-                                </span>
-                                <button
-                                    onClick={handleExportOffice}
-                                    className="text-sm bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-md flex items-center gap-1 transition-colors border border-green-200"
-                                    title="Exportar Reporte Office"
-                                >
-                                    <FaFileExcel />
-                                    <span>Exportar</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={officeData} layout="vertical" margin={{ left: 20, right: 20, top: 10, bottom: 10 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 13, fill: '#4b5563' }} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Bar
-                                        dataKey="value"
-                                        fill="#0ea5e9"
-                                        radius={[0, 4, 4, 0]}
-                                        name="Cantidad"
-                                        onClick={(data) => {
-                                            if (data && data.name) {
-                                                setSelectedOfficeVersion(data.name);
-                                                setShowOfficeModal(true);
-                                            }
-                                        }}
-                                        cursor="pointer"
                                     >
-                                        {officeData.map((entry, index) => (
+                                        {brandData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
                                         ))}
                                     </Bar>
@@ -664,6 +603,87 @@ const MetricsDashboard = () => {
                         </div>
                     </div>
 
+
+
+
+                    {/* Program Distribution (Bar Chart) - Full Width */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <FaCogs className="text-rose-500" />
+                                <h3 className="text-lg font-bold text-gray-800">Uso de Programas (Top 20)</h3>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    Total Equipos: {totalEquipos}
+                                </span>
+                                <button
+                                    onClick={() => setShowProgramModal(true)}
+                                    className="text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-md flex items-center gap-1 transition-colors border border-rose-200 font-medium"
+                                >
+                                    Ver Todos
+                                </button>
+                            </div>
+                        </div>
+                        <div className="h-96">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={programData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
+                                    <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        width={200}
+                                        tick={{ fontSize: 11, fill: '#4b5563' }}
+                                        interval={0}
+                                    />
+                                    <Tooltip 
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="bg-white p-3 border border-gray-100 shadow-lg rounded-lg">
+                                                        <p className="text-sm font-bold text-gray-800 mb-1">{payload[0].payload.name}</p>
+                                                        <p className="text-sm text-rose-600 font-medium whitespace-nowrap">
+                                                            Equipos: {payload[0].value}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 font-medium">
+                                                            Porcentaje de Uso: {payload[0].payload.percentage}%
+                                                        </p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="value"
+                                        radius={[0, 4, 4, 0]}
+                                        name="Cantidad"
+                                        barSize={16}
+                                        onClick={(data) => {
+                                            if (data && data.name) {
+                                                setDetailModalConfig({
+                                                    title: 'Detalle Programa',
+                                                    filterType: 'PROGRAM',
+                                                    filterValue: data.name
+                                                });
+                                                setShowDetailModal(true);
+                                            }
+                                        }}
+                                        cursor="pointer"
+                                    >
+                                        {programData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
 
                     {/* Unit Distribution (Bar Chart) - NEW */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
@@ -753,12 +773,7 @@ const MetricsDashboard = () => {
                 data={data}
             />
 
-            <OfficeDetailsModal
-                isOpen={showOfficeModal}
-                onClose={() => setShowOfficeModal(false)}
-                data={data}
-                filterVersion={selectedOfficeVersion}
-            />
+
 
             <MetricsDetailModal
                 isOpen={showDetailModal}
@@ -768,6 +783,13 @@ const MetricsDashboard = () => {
                 filterType={detailModalConfig.filterType}
                 filterValue={detailModalConfig.filterValue}
                 secondaryFilter={detailModalConfig.secondaryFilter}
+            />
+
+            <ProgramListModal
+                isOpen={showProgramModal}
+                onClose={() => setShowProgramModal(false)}
+                programData={programDataFull}
+                totalEquipos={totalEquipos}
             />
         </div>
     );

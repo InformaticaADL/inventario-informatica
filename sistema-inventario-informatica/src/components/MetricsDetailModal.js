@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaTimes, FaList, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding, FaFilter, FaArrowRight } from "react-icons/fa";
+import { FaTimes, FaList, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaDesktop, FaWindows, FaBuilding, FaFilter, FaArrowRight, FaCogs } from "react-icons/fa";
 import { getLastResponsable } from "@/utils/formatters";
 
 // Sub-Modal for displaying filtered equipment
@@ -190,6 +190,11 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
             return false;
         }
 
+        if (filterType === 'PROGRAM') {
+            if (!item.programas || item.programas.length === 0) return false;
+            return item.programas.some(p => p.nombre_programa === filterValue);
+        }
+
         return false;
     });
 
@@ -231,6 +236,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'LICENSE') return <FaWindows size={24} />;
         if (filterType === 'OS') return <FaWindows size={24} />;
         if (filterType === 'UNIT') return <FaBuilding size={24} />;
+        if (filterType === 'PROGRAM') return <FaCogs size={24} />;
         return <FaList size={24} />;
     };
 
@@ -247,6 +253,7 @@ const MetricsDetailModal = ({ isOpen, onClose, title, data, filterType, filterVa
         if (filterType === 'LICENSE') return "bg-cyan-100 text-cyan-600 from-cyan-50";
         if (filterType === 'OS') return "bg-pink-100 text-pink-600 from-pink-50";
         if (filterType === 'UNIT') return "bg-purple-100 text-purple-600 from-purple-50";
+        if (filterType === 'PROGRAM') return "bg-rose-100 text-rose-600 from-rose-50";
         return "bg-blue-100 text-blue-600 from-blue-50";
     };
 
