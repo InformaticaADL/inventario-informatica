@@ -4,7 +4,7 @@ import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaSave, FaChevronLeft, FaCh
 import api from '@/api/apiConfig';
 import { toast } from 'react-hot-toast';
 
-const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitle }) => {
+const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitle, renderModalHint }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -263,6 +263,8 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitl
                                                 const option = field.options.find(opt => String(opt.id) === String(item[field.name]));
                                                 cellContent = option ? option.label : <span className="text-gray-400 italic">-</span>;
                                             }
+                                        } else if (field.type === 'date' && item[field.name]) {
+                                            cellContent = new Date(item[field.name]).toLocaleDateString('es-CL', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
                                         } else {
                                             cellContent = item[field.name] || <span className="text-gray-400 italic">-</span>;
                                         }
@@ -392,8 +394,9 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitl
                                 <FaTimes size={18} />
                             </button>
                         </div>
+                        {renderModalHint && renderModalHint(data, editingItem)}
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            {fields.map(field => (
+                            {fields.filter(f => !f.hiddenInForm).map(field => (
                                 <div key={field.name}>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
                                         {field.label}

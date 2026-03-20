@@ -4,7 +4,7 @@ import api from '@/api/apiConfig';
 import MaestroManager from '@/components/MaestroManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { FaBuilding, FaTags, FaDesktop, FaMicrochip, FaHdd, FaWindows, FaBriefcase, FaLayerGroup, FaMapMarkerAlt, FaChevronLeft } from 'react-icons/fa';
+import { FaBuilding, FaTags, FaDesktop, FaMicrochip, FaHdd, FaWindows, FaBriefcase, FaLayerGroup, FaMapMarkerAlt, FaChevronLeft, FaIdCard } from 'react-icons/fa';
 import Link from 'next/link';
 import { Toaster } from 'react-hot-toast';
 
@@ -88,6 +88,20 @@ export default function MaestrosPage() {
             id: "ubicaciones", label: "Ubicaciones", icon: FaMapMarkerAlt, endpoint: "/ubicacion", idField: "id_ubicacion", fields: [
                 { name: "nombre_ubicacion", label: "Ubicación", type: "text", required: true },
             ]
+        },
+        {
+            id: "codigo_adl", label: "Códigos ADL", icon: FaIdCard, endpoint: "/codigo-adl", idField: "id_codigoadl", isMale: true, singularTitle: "Código ADL", 
+            renderModalHint: (data, editingItem) => !editingItem && data.length > 0 ? (
+                <div className="px-6 pt-4">
+                    <p className="text-sm text-blue-800 bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-2">
+                        <span className="font-bold">✨ Último código registrado:</span> {data[0].codigo_adl}
+                    </p>
+                </div>
+            ) : null,
+            fields: [
+                { name: "codigo_adl", label: "Código ADL", type: "text", required: true },
+                { name: "fecha_creacion", label: "Fecha Registro", type: "date", hiddenInForm: true }
+            ]
         }
     ];
 
@@ -144,6 +158,7 @@ export default function MaestrosPage() {
                             fields={currentTab.fields}
                             isMale={currentTab.isMale}
                             singularTitle={currentTab.singularTitle}
+                            renderModalHint={currentTab.renderModalHint}
                         />
                     )}
                 </div>

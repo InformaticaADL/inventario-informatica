@@ -39,6 +39,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     const [almacenamientos, setAlmacenamientos] = useState([]);
     const [sos, setSos] = useState([]);
     const [offices, setOffices] = useState([]);
+    const [ultimoCodigo, setUltimoCodigo] = useState(null);
 
     const [formData, setFormData] = useState({
         nombre_equipo: "",
@@ -78,7 +79,7 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             try {
                 const [
                     seccionesRes, sedesRes, tiposRes, marcasRes,
-                    ubiRes, ramsRes, almRes, sosRes, officesRes
+                    ubiRes, ramsRes, almRes, sosRes, officesRes, codigosAdlRes
                 ] = await Promise.all([
                     api.get("/seccion"),
                     api.get("/sede"),
@@ -88,7 +89,8 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                     api.get("/ram"),
                     api.get("/almacenamiento"),
                     api.get("/so"),
-                    api.get("/office")
+                    api.get("/office"),
+                    api.get("/codigo-adl")
                 ]);
 
                 setSecciones(seccionesRes.data);
@@ -100,6 +102,10 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 setAlmacenamientos(almRes.data);
                 setSos(sosRes.data);
                 setOffices(officesRes.data);
+                
+                if (codigosAdlRes.data && codigosAdlRes.data.length > 0) {
+                    setUltimoCodigo(codigosAdlRes.data[0].codigo_adl);
+                }
                 
             } catch (error) {
                 console.error("Error al cargar datos auxiliares:", error);
@@ -219,7 +225,14 @@ const InventarioModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                                 <SectionHeader title="Información General y Ubicación" icon={FaMapMarkerAlt} />
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <InputGroup label="Nombre Equipo" name="nombre_equipo" value={formData.nombre_equipo} onChange={handleChange} required error={errors.nombre_equipo} />
-                                    <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
+                                    <div className="flex flex-col">
+                                        <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
+                                        {ultimoCodigo && !initialData && (
+                                            <span className="text-[11px] text-blue-600 font-medium mt-1 ml-1">
+                                                ✨ Último registrado: {ultimoCodigo}
+                                            </span>
+                                        )}
+                                    </div>
                                     <SelectGroup label="Estado Operativo" name="operativo" value={formData.operativo} onChange={handleChange} options={[{ id: 'SI', label: 'SI' }, { id: 'NO', label: 'NO' }, { id: 'ROBADO', label: 'ROBADO' }]} valueKey="id" labelKey="label" required error={errors.operativo} />
 
                                     <InputGroup label="Estado" name="estado" value={formData.estado} readOnly={true} onChange={() => { }} />

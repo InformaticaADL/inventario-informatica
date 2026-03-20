@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaTrash, FaLayerGroup, FaSearch, FaCheck, FaTimes } from 'react-icons/fa';
 import api from '@/api/apiConfig';
 import { toast } from 'react-hot-toast';
+import Select from 'react-select';
 
 const InventarioSoftware = ({ id_inventario, unidad }) => {
     const [associatedProgramas, setAssociatedProgramas] = useState([]);
@@ -144,6 +145,59 @@ const InventarioSoftware = ({ id_inventario, unidad }) => {
                             ))}
                         </div>
                     )}
+                </div>
+
+                <div className="flex-1 w-full md:max-w-xs">
+                    <Select
+                        placeholder="Seleccionar programa..."
+                        options={allProgramas
+                            .filter(p => !associatedProgramas.some(ap => ap.id_programa === p.id_programa))
+                            .map(p => ({
+                                value: p.id_programa,
+                                label: p.nombre_programa,
+                                secciones: p.secciones
+                            }))}
+                        onChange={(selected) => selected && handleAssociate(selected.value)}
+                        isSearchable
+                        isClearable
+                        className="text-sm"
+                        noOptionsMessage={() => "No hay más programas disponibles"}
+                        styles={{
+                            control: (base) => ({
+                                ...base,
+                                borderRadius: '0.5rem',
+                                borderColor: '#e5e7eb',
+                                padding: '1px',
+                                boxShadow: 'none',
+                                '&:hover': {
+                                    borderColor: '#3b82f6'
+                                }
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                backgroundColor: state.isFocused ? '#eff6ff' : 'white',
+                                color: state.isFocused ? '#1e40af' : '#374151',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem'
+                            })
+                        }}
+                        formatOptionLabel={(option) => (
+                            <div className="flex justify-between items-center">
+                                <span>{option.label}</span>
+                                <div className="flex flex-wrap gap-1">
+                                    {option.secciones && option.secciones.length > 0 ? (
+                                        option.secciones.map(s => (
+                                            <span key={s.id_seccion} className="text-[9px] bg-blue-50 text-blue-600 px-1 border border-blue-100 rounded uppercase font-bold">
+                                                {s.nombre_seccion}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="text-[9px] text-gray-400 italic">Sin sección</span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    />
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto">

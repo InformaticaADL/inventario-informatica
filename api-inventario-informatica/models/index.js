@@ -25,6 +25,7 @@ db.InventarioProgramas = require('./InventarioProgramas')(sequelize, DataTypes);
 db.Mantencion = require('./Mantencion')(sequelize, DataTypes);
 db.Impresora = require('./Impresora')(sequelize, DataTypes);
 db.MarcaImpresora = require('./MarcaImpresora')(sequelize, DataTypes);
+db.CodigoADL = require('./CodigoADL')(sequelize, DataTypes);
 
 // Ejecutar asociaciones
 Object.values(db).forEach((model) => {
