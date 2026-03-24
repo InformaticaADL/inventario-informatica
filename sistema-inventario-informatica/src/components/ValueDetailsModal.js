@@ -3,6 +3,7 @@
 import { FaTimes, FaDesktop, FaUser, FaDollarSign } from "react-icons/fa";
 import { formatCLP, getLastResponsable } from "@/utils/formatters";
 import { parseCLP } from "@/utils/numberParsers";
+import { calculateDepreciatedValue } from "@/utils/depreciation";
 
 const ValueDetailsModal = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
@@ -11,7 +12,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
     const allItems = data; // Show all items
 
     const totalValue = allItems.reduce((acc, item) => {
-        const val = parseCLP(item.valor_neto);
+        const val = calculateDepreciatedValue(item.valor_neto, item.fecha_adquisicion) || 0;
         return acc + val;
     }, 0);
 
@@ -51,7 +52,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Equipo</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Usuario / Ubicación</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">Responsable</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Valor Neto</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Valor Actual</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -79,7 +80,7 @@ const ValueDetailsModal = ({ isOpen, onClose, data }) => {
                                         {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
-                                        {item.valor_neto ? formatCLP(parseCLP(item.valor_neto)) : '-'}
+                                        {formatCLP(calculateDepreciatedValue(item.valor_neto, item.fecha_adquisicion))}
                                     </td>
                                 </tr>
                             ))}

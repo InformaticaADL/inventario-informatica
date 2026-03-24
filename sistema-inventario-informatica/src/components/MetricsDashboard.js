@@ -31,6 +31,7 @@ import MetricsDetailModal from './MetricsDetailModal';
 import ProgramListModal from './ProgramListModal';
 import { useAuth } from '@/hooks/useAuth';
 import { parseCLP } from '@/utils/numberParsers';
+import { calculateDepreciatedValue } from '@/utils/depreciation';
 
 // Modern Color Palette
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -121,11 +122,10 @@ const MetricsDashboard = () => {
     const impresoras = impresorasData.length;
     const otros = totalEquipos - (activos + inactivos + robados);
 
-    // Calculate approximate value if 'valor_neto' exists and is numeric-ish
-    // Calculate approximate value if 'valor_neto' exists and is numeric-ish
+    // Calculate depreciated value
     const totalValor = data.reduce((acc, item) => {
         // Include all equipment regardless of status
-        const val = parseCLP(item.valor_neto);
+        const val = calculateDepreciatedValue(item.valor_neto, item.fecha_adquisicion) || 0;
         return acc + val;
     }, 0);
 

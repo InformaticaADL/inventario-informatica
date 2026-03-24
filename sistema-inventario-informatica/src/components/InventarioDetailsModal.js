@@ -19,6 +19,7 @@ dayjs.extend(utc);
 
 import { formatCLP } from "@/utils/formatters";
 import { parseCLP } from "@/utils/numberParsers";
+import { calculateDepreciatedValue } from "@/utils/depreciation";
 
 import InventarioSoftware from "./InventarioSoftware";
 
@@ -208,7 +209,13 @@ const InventarioDetailsModal = ({ isOpen, onClose, data }) => {
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <DetailItem label="Valor Net" value={formatValue(data.valor_neto)} />
+                                            <DetailItem label="Valor Neto" value={formatValue(data.valor_neto)} />
+                                            <DetailItem 
+                                                label="Valor Actual" 
+                                                value={formatValue(calculateDepreciatedValue(data.valor_neto, data.fecha_adquisicion))} 
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-4">
                                             <DetailItem label="Frec. Mantención" value={data.frecuencia_mantencion} />
                                         </div>
                                         <DetailItem
