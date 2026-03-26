@@ -62,6 +62,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },
+        valor_neto: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
     }, {
         tableName: 'impresoras',
         timestamps: true

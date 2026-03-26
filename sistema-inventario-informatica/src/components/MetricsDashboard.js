@@ -770,7 +770,7 @@ const MetricsDashboard = () => {
             <PrinterDetailsModal
                 isOpen={showPrinterModal}
                 onClose={() => setShowPrinterModal(false)}
-                data={data}
+                data={impresorasData}
             />
 
 

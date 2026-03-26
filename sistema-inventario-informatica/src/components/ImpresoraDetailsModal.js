@@ -10,6 +10,8 @@ import {
     FaCommentAlt,
     FaBarcode
 } from "react-icons/fa";
+import { formatCLP } from "@/utils/formatters";
+import { parseCLP } from "@/utils/numberParsers";
 
 const ImpresoraDetailsModal = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
@@ -86,6 +88,7 @@ const ImpresoraDetailsModal = ({ isOpen, onClose, data }) => {
                                 <DetailItem label="Modelo" value={data.modelo} />
                                 <DetailItem label="N° Serie" value={data.serie} isCode />
                                 <DetailItem label="Dirección IP" value={data.ip} isCode />
+                                <DetailItem label="Valor Neto" value={data.valor_neto ? formatCLP(parseCLP(data.valor_neto)) : '-'} />
                             </div>
                         </div>
 

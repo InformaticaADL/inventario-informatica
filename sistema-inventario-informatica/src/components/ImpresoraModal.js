@@ -56,7 +56,8 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         serie: "",
         codigo_adl: "",
         observaciones: "",
-        tipo: "Impresora"
+        tipo: "Impresora",
+        valor_neto: ""
     });
 
     useEffect(() => {
@@ -104,7 +105,7 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             setFormData({
                 nombre_impresora: "", nombre_usuario: "", ubicacion: "", modelo: "",
                 ip: "", operativo: "SI", sede: "", unidad: "", marca: "",
-                serie: "", codigo_adl: "", observaciones: "", tipo: "Impresora"
+                serie: "", codigo_adl: "", observaciones: "", tipo: "Impresora", valor_neto: ""
             });
         }
     }, [initialData, isOpen]);
@@ -187,6 +188,7 @@ const ImpresoraModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                                 <InputGroup label="Dirección IP" name="ip" value={formData.ip} onChange={handleChange} className="font-mono" />
                                 <InputGroup label="N° Serie" name="serie" value={formData.serie} onChange={handleChange} className="uppercase font-mono" />
                                 <InputGroup label="Código ADL" name="codigo_adl" value={formData.codigo_adl} onChange={handleChange} />
+                                <InputGroup label="Valor Neto" name="valor_neto" value={formData.valor_neto} onChange={handleChange} />
 
                                 <SelectGroup label="Sede" name="sede" value={formData.sede} onChange={handleChange} options={sedes} valueKey="nombre_lugaranalisis" labelKey="nombre_lugaranalisis" required error={errors.sede} />
                                 <SelectGroup label="Unidad / Sección" name="unidad" value={formData.unidad} onChange={handleChange} options={secciones} valueKey="nombre_seccion" labelKey="nombre_seccion" required error={errors.unidad} />

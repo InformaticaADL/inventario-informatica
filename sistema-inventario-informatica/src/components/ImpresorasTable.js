@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
 import { toast } from 'react-hot-toast';
+import { parseCLP } from "@/utils/numberParsers";
+import { formatCLP } from "@/utils/formatters";
 
 import ImpresoraModal from "./ImpresoraModal";
 import ImpresoraDetailsModal from "./ImpresoraDetailsModal";
@@ -364,8 +366,8 @@ const ImpresorasTable = () => {
                     <thead className="bg-gray-50">
                         <tr>
                             {/* Define columns explicitly for better control or map keys for dynamic */}
-                            {['Revisado', 'Sede', 'Operativo', 'Nombre', 'Marca', 'Ubicacion', 'Usuario', 'IP', 'Acciones'].map((header, idx) => {
-                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Revisado': 'revisado', 'Nombre': 'nombre_impresora', 'Marca': 'marca', 'Ubicacion': 'ubicacion', 'Usuario': 'nombre_usuario', 'IP': 'ip' };
+                            {['Revisado', 'Sede', 'Operativo', 'Nombre', 'Marca', 'Ubicacion', 'Usuario', 'IP', 'Valor Neto', 'Acciones'].map((header, idx) => {
+                                const keyMap = { 'Sede': 'sede', 'Operativo': 'operativo', 'Revisado': 'revisado', 'Nombre': 'nombre_impresora', 'Marca': 'marca', 'Ubicacion': 'ubicacion', 'Usuario': 'nombre_usuario', 'IP': 'ip', 'Valor Neto': 'valor_neto' };
                                 const key = keyMap[header];
                                 return (
                                     <th
@@ -423,6 +425,9 @@ const ImpresorasTable = () => {
                                     {formatResponsible(item.nombre_usuario)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{item.ip}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
+                                    {item.valor_neto ? formatCLP(parseCLP(item.valor_neto)) : '-'}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                     {(user?.seccion === 'INF' || user?.seccion === 'GER') && (
                                         <>

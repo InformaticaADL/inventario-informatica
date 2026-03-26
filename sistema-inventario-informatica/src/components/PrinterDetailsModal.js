@@ -7,8 +7,8 @@ import { parseCLP } from "@/utils/numberParsers";
 const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
 
-    // Filter for printers (tipo_equipo contains 'impresora' case-insensitive)
-    const printerItems = data.filter(item => item.tipo_equipo && item.tipo_equipo.toLowerCase().includes('impresora'));
+    // Data refers to impresorasData, no need to filter
+    const printerItems = data;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
@@ -51,9 +51,9 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {printerItems.map((item, index) => (
-                                <tr key={item.id_inventario} className="hover:bg-gray-50 transition-colors">
+                                <tr key={item.id_impresora} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                                        {item.id_inventario}
+                                        {item.id_impresora}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
@@ -61,7 +61,7 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                                                 <FaPrint size={14} />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-medium text-gray-900">{item.nombre_equipo}</div>
+                                                <div className="text-sm font-medium text-gray-900">{item.nombre_impresora}</div>
                                                 <div className="text-xs text-gray-500">{item.marca} {item.modelo}</div>
                                             </div>
                                         </div>
@@ -71,10 +71,9 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                                         <div className="text-xs text-gray-500">{item.observaciones || "Sin observaciones"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {getLastResponsable(item.nombre_responsable) || "Sin responsable"}
+                                        {getLastResponsable(item.nombre_usuario) || "Sin responsable"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
-                                        {/* Mostramos valor si lo hay, aunque no sume al total activo */}
                                         {item.valor_neto ? formatCLP(parseCLP(item.valor_neto)) : '-'}
                                     </td>
                                 </tr>
@@ -82,7 +81,7 @@ const PrinterDetailsModal = ({ isOpen, onClose, data }) => {
                             {printerItems.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                                        No se encontraron impresoras.
+                                        No se encontraron impresoras ni escáneres.
                                     </td>
                                 </tr>
                             )}
