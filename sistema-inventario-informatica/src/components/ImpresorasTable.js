@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle, FaTrash } from "react-icons/fa";
+import { FaEdit, FaSearch, FaArrowUp, FaArrowDown, FaPlus, FaCheckCircle, FaTrash, FaDollarSign } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/api/apiConfig";
@@ -274,8 +274,21 @@ const ImpresorasTable = () => {
 
     if (loading) return <div className="text-center p-10">Cargando impresoras y escáneres...</div>;
 
+    const totalValue = filteredData.reduce((acc, item) => {
+        return acc + (item.valor_neto ? parseCLP(item.valor_neto) : 0);
+    }, 0);
+
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h2 className="text-2xl font-bold text-gray-800">Impresoras y Escáneres</h2>
+                <div className="flex items-center gap-2 p-3 bg-amber-50 text-amber-800 rounded-lg border border-amber-100 shadow-sm shrink-0">
+                    <FaDollarSign size={20} className="text-amber-600" />
+                    <span className="text-sm font-medium">Valor Estimado:</span>
+                    <span className="text-xl font-bold">{formatCLP(totalValue)}</span>
+                </div>
+            </div>
+
             <div className="flex flex-col md:flex-row items-center mb-6 gap-4">
                 <div className="flex flex-col md:flex-row gap-2 items-center flex-wrap">
                     {/* Status Filters */}

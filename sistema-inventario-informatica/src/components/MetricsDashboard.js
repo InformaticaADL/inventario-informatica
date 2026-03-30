@@ -123,11 +123,18 @@ const MetricsDashboard = () => {
     const otros = totalEquipos - (activos + inactivos + robados);
 
     // Calculate depreciated value
-    const totalValor = data.reduce((acc, item) => {
+    const totalValorInventario = data.reduce((acc, item) => {
         // Include all equipment regardless of status
         const val = calculateDepreciatedValue(item.valor_neto, item.fecha_adquisicion) || 0;
         return acc + val;
     }, 0);
+
+    const totalValorImpresoras = impresorasData.reduce((acc, item) => {
+        const val = item.valor_neto ? parseCLP(item.valor_neto) : 0;
+        return acc + val;
+    }, 0);
+
+    const totalValor = totalValorInventario + totalValorImpresoras;
 
     const formattedValor = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(totalValor);
 
@@ -747,6 +754,7 @@ const MetricsDashboard = () => {
                 isOpen={showValueModal}
                 onClose={() => setShowValueModal(false)}
                 data={data}
+                impresorasData={impresorasData}
             />
 
             <InactiveDetailsModal

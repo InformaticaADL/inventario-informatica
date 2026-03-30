@@ -107,7 +107,12 @@ const MaestroManager = ({ endpoint, title, idField, fields, isMale, singularTitl
             fetchData();
         } catch (error) {
             console.error(`Error saving ${title}:`, error);
-            toast.error(`Error al guardar ${title.toLowerCase()}`);
+            // Display specific error message from the backend if available
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error(`Error al guardar ${title.toLowerCase()}`);
+            }
         }
     };
 

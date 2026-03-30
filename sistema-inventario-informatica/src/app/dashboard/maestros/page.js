@@ -54,6 +54,11 @@ export default function MaestrosPage() {
             ]
         },
         {
+            id: "marcas_impresoras", label: "Marcas Impresoras", icon: FaTags, endpoint: "/marca-impresora", idField: "id_marca", fields: [
+                { name: "nombre_marca", label: "Nombre Marca", type: "text", required: true },
+            ]
+        },
+        {
             id: "tipos", label: "Tipos de Equipo", icon: FaDesktop, endpoint: "/tipo-equipo", idField: "id_tipoequipo", isMale: true, singularTitle: "Tipo de equipo", fields: [
                 { name: "nombre_tipoequipo", label: "Nombre Tipo", type: "text", required: true },
             ]
